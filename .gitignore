@@ -1,4 +1,3 @@
 /.venv
-.msh
-.geo
-
+*.msh
+*.geo

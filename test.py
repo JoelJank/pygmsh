@@ -68,7 +68,8 @@ channel_lines = [
 ]
 
 #Problem: lines are not in correct order for line loop bzw. dann kann man die Planes nicht so einfach erstellen. Lösung finden!
-
+#idee: vielleicht kann man hingehen und für jeden Plane eine eigene Linie erstellen, die dann nur die Punkte verbindet, die für den Plane gebraucht werden.
+#Ich glaub das ist das beste vorgehen.
 
 
 channel_lines =[

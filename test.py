@@ -34,26 +34,43 @@ if lChannel < neededwidth:
 #xpositions of fences:
 xposFences = [xfirstfence + i*dxFences for i in range(nFences)]
 
-
-
-
+#ypositions of slits in fences:
+if nSlits > 1:
+    dySlits = hFences/(nSlits)
+    yposSlits = [j*dySlits for j in range(1,nSlits+1)]
+else:
+    yposSlits = [hFences]
 
 
 geo = pygmsh.geo.Geometry()
 m = geo.__enter__()
 
 pointsChannel = [
-    m.add_point((0.0,0.0,0.0), mesh_size=resolution),
-    m.add_point((lChannel,0.0,0.0), mesh_size=resolution),
-    m.add_point((lChannel,hChannel,0.0), mesh_size=resolution),
-    m.add_point((0.0,hChannel,0.0), mesh_size=resolution)
-] +[
-    m.add_point((xposFences[i],0.0,0.0), mesh_size=resolution) for i in range(nFences)
-] +[
-    m.add_point((xposFences[i],hChannel,0.0),mesh_size=resolution) for i in range(nFences)
+    m.add_point((0.0,0.0,0.0), mesh_size=resolution) # (0,0)
+] + [
+    m.add_point((xposFences[i],0.0,0.0), mesh_size=resolution) for i in range(nFences) # xpos of fences at bottom
+] + [
+    m.add_point((lChannel,0.0,0.0), mesh_size=resolution) # (lChannel,0)
+] + [
+    m.add_point((lChannel,yposSlits[j],0.0),mesh_size=resolution) for j in range(nSlits) # (xpos of fences, ypos of slits)
+] + [
+    m.add_point((lChannel,hChannel,0.0), mesh_size=resolution) # (lChannel,hChannel)
+] + [
+    m.add_point((xposFences[i],hChannel,0.0),mesh_size=resolution) for i in range(nFences) # xpos of fences at top
+] + [
+    m.add_point((0.0,hChannel,0.0), mesh_size=resolution) # (0,hChannel)
+] + [
+    m.add_point((0.0,yposSlits[j],0.0),mesh_size=resolution) for j in range(nSlits) # (xpos of fences, ypos of slits)
+]
+
+channel_lines = [
+    m.add_line(pointsChannel[i],pointsChannel[i+1]) for i in range(-1, len(pointsChannel)-1)
 ]
 
 
+
+channel_lines =[
+]
 m.synchronize()
 geo.generate_mesh(dim=2)
 gmsh.write("test2.msh")

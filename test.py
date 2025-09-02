@@ -67,12 +67,14 @@ channel_lines = [
     m.add_line(pointsChannel[i],pointsChannel[i+1]) for i in range(-1, len(pointsChannel)-1)
 ]
 
+#Problem: lines are not in correct order for line loop bzw. dann kann man die Planes nicht so einfach erstellen. Lösung finden!
+
 
 
 channel_lines =[
 ]
 m.synchronize()
 geo.generate_mesh(dim=2)
-gmsh.write("test2.msh")
+gmsh.write("test3.msh")
 geo.__exit__()
 

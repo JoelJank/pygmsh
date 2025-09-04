@@ -19,6 +19,7 @@ hChannel = settings["height_of_channel"]
 lChannel = settings["width_of_channel"]
 xfirstfence = settings["xpos_firstfence"]
 resolution = settings["mesh_resolution"]
+meshFreesize = settings["mesh_freesize"]
 
 # Checks on parameters
 if hChannel > 10*hFences:
@@ -41,12 +42,20 @@ if nSlits > 1:
 else:
     yposSlits = [hFences]
 
+#empty arrays for the points, lines, loops and surfaces
 plane_corner = np.empty((nFences+2,2), dtype = object)
 fences_slitpos = np.empty((nFences+2,nSlits), dtype = object)
 vertical_lines = np.empty((nFences+2,nSlits+1), dtype = object)
 horizontal_lines = np.empty((2,nFences+1), dtype = object)
 plane_loops = np.empty((nFences+1), dtype = object)
 plane_surfaces = np.empty((nFences+1), dtype= object)
+
+
+#calculations for meshing
+
+nFreebeforfirstfence = math.ceil(xfirstfence/meshFreesize)+1 #+1 because gmsh is dumb lol
+nBetweenfences = math.ceil(dxFences/meshFreesize)+1
+nAbovefences = math.ceil((hChannel - hFences)/meshFreesize)+1
 
 geo = pygmsh.geo.Geometry()
 m = geo.__enter__()
@@ -82,8 +91,8 @@ for i in range(nFences+2):
     vertical_lines[i][-1] = m.add_line(fences_slitpos[i][-1],plane_corner[i][1])
     # Die ersten n slits sind die Linien zwischen den slits, der letzte eintrage ist das fence top
 
-print("start")
-#create horizontal lines for the channel at top and bottom + create channel plane loops
+
+#create horizontal lines for the channel at top and bottom + create channel plane loops + create surfaces
 for i in range(nFences+1):
     horizontal_lines[0][i] = m.add_line(plane_corner[i][0], plane_corner[i+1][0])  # bottom line
     horizontal_lines[1][i] = m.add_line(plane_corner[i+1][1], plane_corner[i][1])  # top line
@@ -94,6 +103,36 @@ for i in range(nFences+1):
         [ -l for l in reversed(vertical_lines[i]) ]
     )
     plane_surfaces[i] = m.add_plane_surface(plane_loops[i])
+
+
+#Meshing
+#For cures at the start and end of the channel:
+m.set_transfinite_curve(horizontal_lines[0][0], nFreebeforfirstfence, "Progression", 1.0)
+m.set_transfinite_curve(horizontal_lines[0][-1], nFreebeforfirstfence, "Progression", 1.0)
+m.set_transfinite_curve(horizontal_lines[1][0], nFreebeforfirstfence, "Progression", 1.0)
+m.set_transfinite_curve(horizontal_lines[1][-1], nFreebeforfirstfence,"Progression", 1.0)
+
+#Curves between the fences:
+for i in range(1,nFences):
+    m.set_transfinite_curve(horizontal_lines[0][i], nBetweenfences,"Progression", 1.0)
+    m.set_transfinite_curve(horizontal_lines[1][i], nBetweenfences,"Progression", 1.0)
+
+#For curves above the fences + for the curves of the fences
+
+for i in range(len(vertical_lines)):
+    m.set_transfinite_curve(vertical_lines[i][-1], nAbovefences,"Progression", 1.0)
+    for j in range(len(vertical_lines[i])-1):
+        m.set_transfinite_curve(vertical_lines[i][j],10,"Progression", 1.0) 
+    #here: do the adjustments for the boundary layer meshing!
+    
+
+for i in range (len(plane_surfaces)):
+    m.set_transfinite_surface(plane_surfaces[i],"Left", [plane_corner[i][0], plane_corner[i+1][0], plane_corner[i+1][1], plane_corner[i][1]])
+
+
+m.set_recombined_surfaces([i for i in plane_surfaces])
+
+
 
 
 

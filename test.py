@@ -133,13 +133,19 @@ for i in range (len(plane_surfaces)):
 m.set_recombined_surfaces([i for i in plane_surfaces])
 
 
-
-
-
-
-
-
 m.synchronize()
+
+# add physical groups
+m.add_physical(plane_surfaces.tolist(), "Channel")
+m.add_physical(list(vertical_lines[0]), "Inlet")
+m.add_physical(list(vertical_lines[-1]), "Outlet")
+m.add_physical(list(horizontal_lines[0]), "Bottom")
+m.add_physical(list(horizontal_lines[1]), "Top")
+for i in range(1,nFences+1):
+    m.add_physical(vertical_lines[i][-1], f"FenceTop{i}")
+    for j in range(len(vertical_lines[i])-1):
+        m.add_physical(vertical_lines[i][j], f"z{i}s{j+1}")
+
 geo.generate_mesh(dim=2)
 gmsh.write("test3.msh")
 geo.__exit__()

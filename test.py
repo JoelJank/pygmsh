@@ -94,9 +94,9 @@ else:
     yposSlits = [hFences]
 
 #empty arrays for the points, lines, loops and surfaces
-plane_corner = np.empty((nFences+2,2), dtype = object)
+plane_corner = np.empty((nFences+2,3), dtype = object)
 fences_slitpos = np.empty((nFences+2,nSlits), dtype = object)
-vertical_lines = np.empty((nFences+2,nSlits+1), dtype = object)
+vertical_lines = np.empty((nFences+2,nSlits+2), dtype = object)
 horizontal_lines = np.empty((2,nFences+1), dtype = object)
 plane_loops = np.empty((nFences+1), dtype = object)
 plane_surfaces = np.empty((nFences+1), dtype= object)
@@ -107,21 +107,24 @@ mesh_inflation = np.empty((nFences+1), dtype = object)
 
 nFreebeforfirstfence = math.ceil(xfirstfence/meshFreesize)+1 
 nBetweenfences = math.ceil(dxFences/meshFreesize)+1
-nAbovefences = math.ceil((hChannel - hFences)/meshFreesize)+1
+nAbovefences = math.ceil((hChannel-toppoints)/meshFreesize)+1
 
 geo = pygmsh.geo.Geometry()
 m = geo.__enter__()
 
 #Create points for the corners of the planes
 plane_corner[0][0] = m.add_point((0.0,0.0,0.0), mesh_size=resolution) # (0,0)
-plane_corner[0][1] = m.add_point((0.0,hChannel,0.0), mesh_size=resolution) # (0,hChannel)
+plane_corner[0][1] = m.add_point((0.0, toppoints,0.0), mesh_size=resolution) # (0,endofinflation)
+plane_corner[0][2] = m.add_point((0.0,hChannel,0.0), mesh_size=resolution) # (0,hChannel)
 
 for i in range(1,nFences+1):
     plane_corner[i][0] = m.add_point((xposFences[i-1],0.0,0.0), mesh_size=resolution) # (xpos of fences, 0)
-    plane_corner[i][1] = m.add_point((xposFences[i-1],hChannel,0.0), mesh_size=resolution) # (xpos of fences, hChannel)
+    plane_corner[i][1] = m.add_point((xposFences[i-1], toppoints,0.0), mesh_size=resolution) # (0,endofinflation)
+    plane_corner[i][2] = m.add_point((xposFences[i-1],hChannel,0.0), mesh_size=resolution) # (xpos of fences, hChannel)
 
 plane_corner[nFences+1][0] = m.add_point((lChannel,0.0,0.0), mesh_size=resolution) # (lChannel,0)
-plane_corner[nFences+1][1] = m.add_point((lChannel,hChannel,0.0), mesh_size=resolution) # (lChannel,hChannel)
+plane_corner[nFences+1][1] = m.add_point((lChannel,toppoints,0.0), mesh_size=resolution) # (lChannel,endofinflation)
+plane_corner[nFences+1][2] = m.add_point((lChannel,hChannel,0.0), mesh_size=resolution) # (lChannel,hChannel)
 
 
 #create points for the slits of the fences:
@@ -140,7 +143,10 @@ for i in range(nFences+2):
     vertical_lines[i][0] = m.add_line(plane_corner[i][0],fences_slitpos[i][0])
     for j in range(nSlits-1):
         vertical_lines[i][j+1] = m.add_line(fences_slitpos[i][j],fences_slitpos[i][j+1])
-    vertical_lines[i][-1] = m.add_line(fences_slitpos[i][-1],plane_corner[i][1])
+    vertical_lines[i][-2] = m.add_line(fences_slitpos[i][-1],plane_corner[i][1]) #linie bis end of inflation
+    vertical_lines[i][-1] = m.add_line(plane_corner[i][1],plane_corner[i][2])  #linie bis top of channel von end of inflation
+    
+    
     # Die ersten n slits sind die Linien zwischen den slits, der letzte eintrage ist das fence top
 
 
@@ -172,9 +178,9 @@ for i in range(1,nFences):
 #For curves above the fences + for the curves of the fences
 
 for i in range(len(vertical_lines)):
-    m.set_transfinite_curve(vertical_lines[i][-1], nAbovefences,"Progression", 1.1)
+    m.set_transfinite_curve(vertical_lines[i][-1], nAbovefences,"Progression", 1)
     for j in range(len(vertical_lines[i])-1):
-        m.set_transfinite_curve(vertical_lines[i][j],10,"Progression", 1.0) 
+        m.set_transfinite_curve(vertical_lines[i][j],meshdata[i][j],"Progression", meshGrowthrate) 
     #here: do the adjustments for the boundary layer meshing!
     
 

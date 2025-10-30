@@ -75,20 +75,13 @@ meshGrowthrate = settings["mesh_growthrate"]
 meshNumberofinflationlayers = settings["inflation_layers"]
 meshgrowthafterinflation = settings["meshgrowtrate_afterinflation"]
 
-meshdata, toppoints, nbisoben = inflationcalculation(meshFirstlayerheight, meshGrowthrate, meshNumberofinflationlayers, hFences, nSlits, hChannel, meshgrowthafterinflation)
-
-meshdata[:,0] = [int(x[0]) + 1 for x in meshdata]
-print(f"Height of last layer at top boundary: {nbisoben[1]}")
-# Checks on parameters
-if hChannel > 10*hFences:
-    hChannel = 10*hFences
-
 neededwidth = 2* xfirstfence + (nFences-1)*dxFences # make safe that all fences fit in channel and that inlet is the same width as outlet
 if lChannel < neededwidth:
     lChannel = neededwidth
 
-
-
+meshdata, toppoints, nbisoben = inflationcalculation(meshFirstlayerheight, meshGrowthrate, meshNumberofinflationlayers, hFences, nSlits, hChannel, meshgrowthafterinflation)
+meshdata[:,0] = [int(x[0]) + 1 for x in meshdata]
+print(f"Height of last layer at top boundary: {nbisoben[1]}")
 #Calculations:
 
 #xpositions of fences:

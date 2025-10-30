@@ -206,6 +206,6 @@ for i in range(1,nFences+1):
         m.add_physical(vertical_lines[i][j], f"z{i}s{j+1}")
 
 geo.generate_mesh(dim=2)
-gmsh.write("test3.msh")
+gmsh.write("mesh.msh")
 geo.__exit__()
 

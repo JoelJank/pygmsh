@@ -19,7 +19,10 @@ def totalheightcalculation(h1, growthrate, nlayers):
     return totalheight
 
 
-def inflationcalculation(h1, growthrate, nlayers, hFence, nparts):
+
+
+
+def inflationcalculation(h1, growthrate, nlayers, hFence, nparts, hChannel, growthaferinflation):
     heightparts = hFence /nparts
     meshdata = np.empty((nparts+1,2), dtype = object)
     totalheight = totalheightcalculation(h1, growthrate, nlayers)
@@ -31,24 +34,27 @@ def inflationcalculation(h1, growthrate, nlayers, hFence, nparts):
         meshdata[0] = [math.ceil(nFirstlayer), lastlayer]
         for i in range(1,nparts):
             if nextlayer > heightparts:
-                nextlayer = lastlayer + heightparts
+                nextlayer = heightparts
                 meshdata[i] = [1, nextlayer]
                 lastlayer = nextlayer
             else:
                 nlayer, nextlayer, lastlayer = layercalcuations(heightparts, growthrate, nextlayer)
                 meshdata[i] = [math.ceil(nlayer), lastlayer]
                 
-    sumlayers = np.sum(meshdata[:-1,0])
+    sumlayers = np.sum(meshdata[:-1,0]) #auffüllen der restlichen Layer
     remaininglayer = nlayers - sumlayers
-    toppoints = meshdata[-2][1]
     if remaininglayer > 0:
         heightlastlayer = totalheightcalculation(nextlayer, growthrate, remaininglayer)
-        toppoints = heightlastlayer + nparts*heightparts
-        meshdata[-1] = [remaininglayer, heightlastlayer + meshdata[-2][1]]
+        nlayer, nextlayer, lastlayer = layercalcuations(heightlastlayer, growthrate, nextlayer)
+        toppoints = heightlastlayer + hFence
+        meshdata[-1] = [remaininglayer, lastlayer]
     else:
-        meshdata = meshdata[:-1]
+        toppoints = nparts*heightparts + meshdata[-2][1]
+        meshdata[-1] = [1, lastlayer]
         
-    return meshdata, toppoints, abs(toppoints - totalheight)
+    #für inflation bis nach oben
+    nbisoben, nextlayeroben, lastlayeroben = layercalcuations(hChannel-toppoints, growthaferinflation, lastlayer)
+    return meshdata, toppoints, [math.ceil(nbisoben), lastlayeroben]
 
 
     
@@ -67,10 +73,12 @@ meshFreesize = settings["mesh_freesize"]
 meshFirstlayerheight = settings["mesh_firstlayerheight"]
 meshGrowthrate = settings["mesh_growthrate"]
 meshNumberofinflationlayers = settings["inflation_layers"]
+meshgrowthafterinflation = settings["meshgrowtrate_afterinflation"]
 
-meshdata, toppoints, diff = inflationcalculation(meshFirstlayerheight, meshGrowthrate, meshNumberofinflationlayers, hFences, nSlits)
+meshdata, toppoints, nbisoben = inflationcalculation(meshFirstlayerheight, meshGrowthrate, meshNumberofinflationlayers, hFences, nSlits, hChannel, meshgrowthafterinflation)
 
-print(f"Meshdata for inflation layers: {meshdata} \nTop points: {toppoints} \nDifferenz to calculated inflation height: {diff}")
+meshdata[:,0] = [int(x[0]) + 1 for x in meshdata]
+print(f"Height of last layer at top boundary: {nbisoben[1]}")
 # Checks on parameters
 if hChannel > 10*hFences:
     hChannel = 10*hFences
@@ -153,7 +161,7 @@ for i in range(nFences+2):
 #create horizontal lines for the channel at top and bottom + create channel plane loops + create surfaces
 for i in range(nFences+1):
     horizontal_lines[0][i] = m.add_line(plane_corner[i][0], plane_corner[i+1][0])  # bottom line
-    horizontal_lines[1][i] = m.add_line(plane_corner[i+1][1], plane_corner[i][1])  # top line
+    horizontal_lines[1][i] = m.add_line(plane_corner[i+1][2], plane_corner[i][2])  # top line
     plane_loops[i] = m.add_curve_loop(
         [horizontal_lines[0][i]] +
         list(vertical_lines[i+1]) +
@@ -178,14 +186,14 @@ for i in range(1,nFences):
 #For curves above the fences + for the curves of the fences
 
 for i in range(len(vertical_lines)):
-    m.set_transfinite_curve(vertical_lines[i][-1], nAbovefences,"Progression", 1)
+    m.set_transfinite_curve(vertical_lines[i][-1], nbisoben[0],"Progression", meshgrowthafterinflation)
     for j in range(len(vertical_lines[i])-1):
-        m.set_transfinite_curve(vertical_lines[i][j],meshdata[i][j],"Progression", meshGrowthrate) 
+        m.set_transfinite_curve(vertical_lines[i][j],meshdata[j][0],"Progression", meshGrowthrate) 
     #here: do the adjustments for the boundary layer meshing!
     
 
 for i in range (len(plane_surfaces)):
-    m.set_transfinite_surface(plane_surfaces[i],"Left", [plane_corner[i][0], plane_corner[i+1][0], plane_corner[i+1][1], plane_corner[i][1]])
+    m.set_transfinite_surface(plane_surfaces[i],"Left", [plane_corner[i][0], plane_corner[i+1][0], plane_corner[i+1][2], plane_corner[i][2]])
 
 
 m.set_recombined_surfaces([i for i in plane_surfaces])
@@ -205,6 +213,6 @@ for i in range(1,nFences+1):
         m.add_physical(vertical_lines[i][j], f"z{i}s{j+1}")
 
 geo.generate_mesh(dim=2)
-gmsh.write("test3.bdf")
+gmsh.write("test3.msh")
 geo.__exit__()
 

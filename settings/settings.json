@@ -3,12 +3,13 @@
     "height_of_fences": 1,
     "distance_of_fences": 2,
     "xpos_firstfence":100,
-    "number_of_slits": 16,
+    "number_of_slits": 25,
     "height_of_channel": 10,
     "width_of_channel": 200,
     "mesh_resolution": 1,
     "mesh_freesize" : 0.25,
     "mesh_firstlayerheight": 0.003,
     "inflation_layers": 47,
-    "mesh_growthrate": 1.1
+    "mesh_growthrate": 1.1,
+    "meshgrowtrate_afterinflation": 1.05
 }

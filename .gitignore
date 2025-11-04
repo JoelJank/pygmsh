@@ -2,3 +2,4 @@
 *.msh
 *.geo
 *.bdf
+__pycache__/

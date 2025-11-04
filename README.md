@@ -11,3 +11,7 @@ Espacially when the domain is complicated, for example when the fence has multip
 This program tackles that problem and should be a first step into the direction of coupling CFD simulation with models that predict the sand flux based on the results of the CFD simulations, which then provide feedbacks and make changes to the CFD domain. In this case, an efficient and reliable way to mesh the multiple geometries is necessary.
 
 Firstly, this program is designed to be used in 2D cases. However, it is further adapted to also use it in 3D cases
+
+
+To-do: write second python file for spline creation
+start with 3d meshing

@@ -28,12 +28,19 @@ meshNumberofinflationlayers = settings["meshNumberofinflationlayers"]
 meshgrowthafterinflation = settings["meshgrowthafterinflation"]
 savespace = settings["savespace"]
 
-spline_data = read_height_file(splie_data_path)
+
 
 
 neededwidth = 2* xfirstfence + (nFences-1)*dxFences # make safe that all fences fit in channel and that inlet is the same width as outlet
 if lChannel < neededwidth:
     lChannel = neededwidth
+
+spline_data = read_height_file(splie_data_path)
+if spline_data[0] != [0,0,0]:
+    spline_data = spline_data[1:]
+    spline_data.insert(0, [0,0,0])
+if spline_data[-1][0] < lChannel:
+    spline_data.append([lChannel,0,0])
 
 meshdata, toppoints, nbisoben = inflationcalculation(meshFirstlayerheight, meshGrowthrate, meshNumberofinflationlayers, hFences, nSlits, hChannel, meshgrowthafterinflation)
 meshdata[:,0] = [int(x[0]) + 1 for x in meshdata]
@@ -77,20 +84,18 @@ spline_id = gmsh.model.getEntities(1)[-1][1]
 #Create points for the corners of the planes
 
 #Inlet points
-if spline_data[0][0] != 0.0:
-    plane_corner[0][0] = m.add_point((0.0,0.0,0.0)) # (0,0)
-    plane_corner[0][1] = m.add_point((0.0, toppoints, 0.0))
-    plane_corner[0][2] = m.add_point((0.0, hChannel, 0.0))
-else:
-    plane_corner[0][0] = spline_points[0]
-    plane_corner[0][1] = m.add_point((spline_data[0][0], toppoints, 0.0))
-    plane_corner[0][2] = m.add_point((spline_data[0][0], hChannel, 0.0))
+
+plane_corner[0][0] = m.add_point((spline_data[0][0],0.0,0.0)) # (0,0)
+plane_corner[0][1] = m.add_point((spline_data[0][0], toppoints, 0.0))
+plane_corner[0][2] = m.add_point((spline_data[0][0], hChannel, 0.0))
 #Points at fences
+fence_bottompoints = np.empty((nFences), dtype=object)
 for i in range(1,nFences+1):
     x_target = xposFences[i-1]
     point_on_spline = point_on_curve(spline_id, x_target, start=0.5) # (x-position of fence, y-position from spline)
+    fence_bottompoints[i-1] = point_on_spline[1]
     plane_corner[i][0] = m.add_point((point_on_spline[0], point_on_spline[1], point_on_spline[2]))
-    plane_corner[i][1] = m.add_point((point_on_spline[0], toppoints, 0.0))
+    plane_corner[i][1] = m.add_point((point_on_spline[0], point_on_spline[1]+toppoints, 0.0)) #watch for addition of the height of the current bottom
     plane_corner[i][2] = m.add_point((point_on_spline[0], hChannel, 0.0))
 
 #Points at outlet
@@ -103,7 +108,10 @@ else:
     plane_corner[nFences+1][1] = m.add_point((spline_data[-1][0], toppoints, 0.0))
     plane_corner[nFences+1][2] = m.add_point((spline_data[-1][0], hChannel, 0.0))
 
-print(yposSlits)
+print(fence_bottompoints)
+
+#create points for the slits of the fences:
+
 
 m.synchronize()
 geo.generate_mesh(dim=2)

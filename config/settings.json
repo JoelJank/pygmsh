@@ -12,5 +12,5 @@
     "inflation_layers": 47,
     "mesh_growthrate": 1.1,
     "meshgrowtrate_afterinflation": 1.05,
-    "savespace": "mesh.msh"
+    "savespace": "../test/mesh.msh"
 }

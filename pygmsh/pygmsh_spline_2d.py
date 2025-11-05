@@ -110,7 +110,10 @@ else:
 
 print(fence_bottompoints)
 
+
 #create points for the slits of the fences:
+
+#Problem: Spline muss aufgeteilt werden an den positionen der zaunfences, damit man unterschiedliche surfaces erstellen kann
 
 
 m.synchronize()

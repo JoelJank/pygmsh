@@ -22,4 +22,3 @@ def json_read(file_path):
         "savespace": file["savespace"]
     }
     return data_dict
-    

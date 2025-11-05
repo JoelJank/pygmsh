@@ -12,5 +12,5 @@
     "inflation_layers": 47,
     "mesh_growthrate": 1.1,
     "meshgrowtrate_afterinflation": 1.05,
-    "savespace": "H:/AG Parteli/pygmsh/pygmsh/mesh.msh"
+    "savespace": "mesh.msh"
 }

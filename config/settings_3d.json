@@ -1,0 +1,19 @@
+{
+    "number_of_fences": 10,
+    "height_of_fences": 1,
+    "distance_of_fences": 2,
+    "xpos_firstfence":100,
+    "number_of_slits": 16,
+    "height_of_channel": 10,
+    "length_of_channel": 200,
+    "depth_of_channel": 20,
+    "vertical": true,
+    "resolution_between_slits": 0.0125,
+    "mesh_resolution": 1,
+    "mesh_freesize" : 0.5,
+    "mesh_firstlayerheight": 0.003,
+    "inflation_layers": 47,
+    "mesh_growthrate": 1.1,
+    "meshgrowtrate_afterinflation": 1.05,
+    "savespace": "../test/mesh.msh"
+}

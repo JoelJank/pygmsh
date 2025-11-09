@@ -3,11 +3,11 @@ import gmsh
 import math
 import numpy as np
 from utils.meshcalc import inflationcalculation
-from utils.json import json_read
+from utils.json import json_read2D
 
 settings_path = "../config/settings.json"
     
-settings = json_read(settings_path)
+settings = json_read2D(settings_path)
 
 nFences =  settings["nFences"]
 hFences = settings["hFences"]
@@ -31,6 +31,7 @@ if lChannel < neededwidth:
 
 meshdata, toppoints, nbisoben = inflationcalculation(meshFirstlayerheight, meshGrowthrate, meshNumberofinflationlayers, hFences, nSlits, hChannel, meshgrowthafterinflation)
 meshdata[:,0] = [int(x[0]) + 1 for x in meshdata]
+nbisoben[0] = int(nbisoben[0]) + 1
 print(f"Height of last layer at top boundary: {nbisoben[1]}")
 #Calculations:
 
@@ -132,7 +133,6 @@ for i in range(len(vertical_lines)):
     m.set_transfinite_curve(vertical_lines[i][-1], nbisoben[0],"Progression", meshgrowthafterinflation)
     for j in range(len(vertical_lines[i])-1):
         m.set_transfinite_curve(vertical_lines[i][j],meshdata[j][0],"Progression", meshGrowthrate) 
-    #here: do the adjustments for the boundary layer meshing!
     
 
 for i in range (len(plane_surfaces)):

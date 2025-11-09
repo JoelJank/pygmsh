@@ -1,7 +1,7 @@
 import json
 
 
-def json_read(file_path):
+def json_read_2D(file_path):
     with open(file_path, 'r') as f:
         file = json.load(f)
     
@@ -22,3 +22,11 @@ def json_read(file_path):
         "savespace": file["savespace"]
     }
     return data_dict
+
+
+def json_read_3D(file_path):
+    with open(file_path, 'r') as f:
+        file = json.load(f)
+    return file
+    
+    

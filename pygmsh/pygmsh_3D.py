@@ -215,8 +215,6 @@ for i in range(len(extrusions_inflation_before)):
 x_afterfence = length_channel - xpos_fence
 xnumlayer_after = math.ceil(x_afterfence / mesh_freesize_xdirection)
 extrusions_bottom_after.append(m.extrude(middle_interior_bottom[0], translation_axis = [x_afterfence, 0, 0], num_layers = xnumlayer_after, recombine = True))
-print(len(fence_2))
-print(len(fence_1))
 for i in range(len(fence_1)): #VORSICHTIG: GEHT NUR WENN DIM(FNACE_1) == DIM(FENCE_2) 
     extrusions_bottom_after.append(m.extrude(fence_1[i], translation_axis = [x_afterfence, 0, 0], num_layers = xnumlayer_after, recombine = True))
     extrusions_bottom_after.append(m.extrude(fence_2[i], translation_axis = [x_afterfence, 0, 0], num_layers = xnumlayer_after, recombine = True))

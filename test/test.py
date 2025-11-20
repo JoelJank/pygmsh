@@ -28,19 +28,18 @@ m.set_recombined_surfaces([surfaces[0]])
 
 
 test_extrusion = m.extrude(surfaces[0], [10,0,0], num_layers=5, recombine=True)
+print(test_extrusion)
 m.add_physical(surfaces[0], "Inlet")
-m.add_physical(test_extrusion[0], "Extruded Volume")
 m.add_physical(test_extrusion[1], "Outlet")
 m.add_physical(test_extrusion[2][0], "Bottom")
 m.add_physical(test_extrusion[2][1], "Front")
 m.add_physical(test_extrusion[2][2], "Top")
+m.add_physical(test_extrusion[2][3], "Back")
 m.add_physical
 m.synchronize()
 geo.generate_mesh(dim=3)
 gmsh.write("mesh2.msh")
 geo.__exit__()
-a = []
-a.append([2,2])
-print(a)
+
 
 

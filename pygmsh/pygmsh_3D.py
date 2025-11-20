@@ -17,7 +17,6 @@ xpos_fence = settings["xpos_firstfence"]
 width_slits = settings["width_of_slits"]
 height_channel = settings["height_of_channel"]
 length_channel = settings["length_of_channel"]
-depth_channel = settings["depth_of_channel"]
 
 #Informations about meshing#
 mesh_freesize_xdirection = settings["mesh_freesize_xdirection"]
@@ -39,7 +38,7 @@ nbisoben[0] = int(nbisoben[0]) + 1
 #Berechnungen für punkte der slits
 corner_fence = depth_fence/2
 nSlits =  depth_fence / width_slits
-zpos_slits = [-round(corner_fence - i * width_slits, 2) for i in range(int(nSlits)+2)]
+zpos_slits = [-round(corner_fence - i * width_slits, 4) for i in range(int(nSlits)+1)] #Fix here why sometimes +1 and sometimes + 2
 endofz = corner_fence+depth_fence
 frontofz = -endofz
 
@@ -79,6 +78,8 @@ corners_surfaces[-1][0] = m.add_point((0.0, 0.0, endofz), mesh_size = 1)
 corners_surfaces[-1][1] = m.add_point((0.0, height_fence, endofz), mesh_size = 1)
 corners_surfaces[-1][2] = m.add_point((0.0, toppoints, endofz), mesh_size = 1)
 corners_surfaces[-1][3] = m.add_point((0.0, height_channel, endofz), mesh_size = 1)
+
+print(len(corners_surfaces))
 
 #All points created!!!
 #Create lines 
@@ -197,6 +198,7 @@ back_surf.append(extrusions_top_before[-1][2][1])
 middle_interior_bottom.append(extrusions_bottom_before[0][0])
 middle_interior_bottom.append(extrusions_bottom_before[-1][0])
 
+
 for i in range(1, len(bottom_surfaces)-1):
     if i % 2 == 1:
         fence_1.append(extrusions_bottom_before[i][0])
@@ -213,7 +215,8 @@ for i in range(len(extrusions_inflation_before)):
 x_afterfence = length_channel - xpos_fence
 xnumlayer_after = math.ceil(x_afterfence / mesh_freesize_xdirection)
 extrusions_bottom_after.append(m.extrude(middle_interior_bottom[0], translation_axis = [x_afterfence, 0, 0], num_layers = xnumlayer_after, recombine = True))
-
+print(len(fence_2))
+print(len(fence_1))
 for i in range(len(fence_1)): #VORSICHTIG: GEHT NUR WENN DIM(FNACE_1) == DIM(FENCE_2) 
     extrusions_bottom_after.append(m.extrude(fence_1[i], translation_axis = [x_afterfence, 0, 0], num_layers = xnumlayer_after, recombine = True))
     extrusions_bottom_after.append(m.extrude(fence_2[i], translation_axis = [x_afterfence, 0, 0], num_layers = xnumlayer_after, recombine = True))

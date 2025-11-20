@@ -1,17 +1,16 @@
 {
-    "height_of_fences": 0.4,
-    "depth_fence": 7.6,
+    "height_of_fences": 0.1,
+    "depth_fence": 1.6,
     "xpos_firstfence":100,
-    "width_of_slits": 0.05,
-    "height_of_channel": 10,
+    "width_of_slits": 0.0125,
+    "height_of_channel": 4,
     "length_of_channel": 200,
-    "depth_of_channel": 20,
-    "resolution_between_slits": 0.0167,
+    "resolution_between_slits": 0.0040,
     "mesh_freesize_xdirection" : 0.5,
     "mesh_freesize_zdirection" : 0.5,
     "mesh_firstlayerheight": 0.003,
     "inflation_layers": 47,
     "mesh_growthrate": 1.1,
     "meshgrowtrate_afterinflation": 1.05,
-    "savespace": "../test/mesh.msh"
+    "savespace": "../test/small.msh"
 }

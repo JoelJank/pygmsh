@@ -13,5 +13,8 @@ This program tackles that problem and should be a first step into the direction 
 Firstly, this program is designed to be used in 2D cases. However, it is further adapted to also use it in 3D cases
 
 
-To-do: write second python file for spline creation
-start with 3d meshing
+To-do: 
+Add coherence Mesh for 2D as well as 3D
+Refactoring
+Figure out the -1 or -2 Problem
+Find way to write the settings files back to keep track of the Parameters that were used to create the mesh

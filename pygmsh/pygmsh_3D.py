@@ -3,14 +3,17 @@ import gmsh
 import math
 import numpy as np
 import utils.meshcalc as utils
-from utils.json import json_read_3D
+from utils.json import json_read_3D, save_json_to_savespace
 
 settings_path = "../config/settings_3d.json"
 
-settings = json_read_3D(settings_path)
+settings = json_read_3D(settings_path) #Read and write settings file
+save_json_to_savespace(settings_path)
+
 #Erstmal ist das Skript nur für 1 Zaun und vertikale Schlitze ausgelegt, 50% porosity
 
 # Informations about fences and channel
+name = settings["name"]
 height_fence = settings["height_of_fences"]
 depth_fence = settings["depth_fence"]
 xpos_fence = settings["xpos_firstfence"]
@@ -29,6 +32,7 @@ meshgrowthafterinflation = settings["meshgrowtrate_afterinflation"]
 
 #Savespace
 savespace = settings["savespace"]
+savespace = f"{savespace}/{name}.msh"
 meshresolution = 1
 
 
@@ -38,7 +42,8 @@ nbisoben[0] = int(nbisoben[0]) + 1
 #Berechnungen für punkte der slits
 corner_fence = depth_fence/2
 nSlits =  depth_fence / width_slits
-zpos_slits = [-round(corner_fence - i * width_slits, 4) for i in range(int(nSlits)+1)] #Fix here why sometimes +1 and sometimes + 2
+zpos_slits = [-round(corner_fence - i * width_slits, 4) for i in range(int(nSlits)+2)]
+print(zpos_slits)
 endofz = corner_fence+depth_fence
 frontofz = -endofz
 
@@ -266,6 +271,7 @@ m.add_physical(volumes_after, "Volume 2")
 
 m.synchronize()
 geo.generate_mesh(dim=3)
+gmsh.model.mesh.removeDuplicateNodes()
 gmsh.write(savespace)
 geo.__exit__()
 

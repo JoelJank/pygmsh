@@ -1,0 +1,48 @@
+/define/boundary-conditions/modify-zones zone-type solid-10 fluid
+/define/boundary-conditions/modify-zones zone-type solid-11 fluid
+
+/define/boundary-conditions/modify-zones zone-name wall-1 inlet
+/define/boundary-conditions/modify-zones zone-name wall-5 outlet
+/define/boundary-conditions/modify-zones zone-name wall-7-solid-10 top_1
+/define/boundary-conditions/modify-zones zone-name wall-7-solid-11 top_2
+/define/boundary-conditions/modify-zones zone-name wall-6-solid-10 bottom_1
+/define/boundary-conditions/modify-zones zone-name default_exterior-11 bottom_2
+/define/boundary-conditions/modify-zones zone-name wall-8-solid-10 back_1
+/define/boundary-conditions/modify-zones zone-name wall-8-solid-11 back_2
+/define/boundary-conditions/modify-zones zone-name wall-9-solid-10 front_1
+/define/boundary-conditions/modify-zones zone-name wall-9-solid-11 front_2_top
+/define/boundary-conditions/modify-zones zone-name wall-6-solid-11 front_2_bottom
+/define/boundary-conditions/modify-zones zone-name interface-wall-2 slits1
+/define/boundary-conditions/modify-zones zone-name interface-wall-3 slits2
+/define/boundary-conditions/modify-zones zone-name interface-wall-4 fence_through
+
+/define/boundary-conditions zone-type top_1 symmetry
+/define/boundary-conditions zone-type top_2 symmetry
+/define/boundary-conditions zone-type back_1 symmetry
+/define/boundary-conditions zone-type back_2 symmetry
+/define/boundary-conditions zone-type front_1 symmetry
+/define/boundary-conditions zone-type front_2_top symmetry
+/define/boundary-conditions zone-type front_2_bottom symmetry
+/define/boundary-conditions zone-type inlet velocity-inlet
+/define/boundary-conditions zone-type outlet outflow
+/define/boundary-conditions zone-type fence_through interior
+
+
+/define/boundary-conditions zone-type slits1 wall
+/define/boundary-conditions zone-type slits1 interior
+
+
+/define/user-defined interpreted-functions "/home/joel/Schreibtisch/Fence_Paper/ning_etal/simulations/profiles_u_05.txt" cpp 10000 no
+
+define/boundary-conditions velocity-inlet inlet n n y y y y "udf" steady_velo n 0 y y y "udf" k_profile y y "udf" om_profile
+
+/solve/set limits 1 5e+10 1e-14 1e-20 1e+12
+
+/solve/monitors/residual 1e-6 1e-4 1e-4 1e-4 1e-6 1e-6
+
+/solve/initialize/compute-defaults velocity-inlet inlet
+/solve/initialize initialize-flow
+
+/solve/iterate 10000
+
+

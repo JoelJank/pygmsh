@@ -1,5 +1,5 @@
 # pygmsh
-
+TODO DRINGEND!!!!: HERAUFINDEN WARUM BEI BESTIMMTEN ZAUNHÖHE DAS MESH NICHT MEHR KLAPPT -> vielleicht mal andere Breite probieren?
 This small git project is subjected to a specific application of the gmsh api to use it in the simulation of an atmospheric boundary layer with a present obstacle such as an sand fence. 
 
 The necessary steps are:

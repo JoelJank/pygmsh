@@ -4,7 +4,7 @@ import math
 import numpy as np
 import os
 import utils.meshcalc as utils
-from utils.json import json_read_3D, save_json_to_savespace
+from utils.json import json_read as json_read_3D, save_json_to_savespace
 
 settings_path = "../config/settings_3d.json"
 

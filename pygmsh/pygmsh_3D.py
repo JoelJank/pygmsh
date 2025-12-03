@@ -2,13 +2,13 @@ import pygmsh
 import gmsh
 import math
 import numpy as np
+import os
 import utils.meshcalc as utils
 from utils.json import json_read_3D, save_json_to_savespace
 
 settings_path = "../config/settings_3d.json"
 
 settings = json_read_3D(settings_path) #Read and write settings file
-save_json_to_savespace(settings_path)
 
 #Erstmal ist das Skript nur für 1 Zaun und vertikale Schlitze ausgelegt, 50% porosity
 
@@ -33,6 +33,8 @@ meshgrowthafterinflation = settings["meshgrowtrate_afterinflation"]
 #Savespace
 savespace = settings["savespace"]
 savespace = f"{savespace}/{name}.msh"
+os.makedirs(os.path.dirname(savespace), exist_ok=True)
+save_json_to_savespace(settings_path)
 meshresolution = 1
 
 
@@ -42,7 +44,7 @@ nbisoben[0] = int(nbisoben[0]) + 1
 #Berechnungen für punkte der slits
 corner_fence = depth_fence/2
 nSlits =  depth_fence / width_slits
-zpos_slits = [-round(corner_fence - i * width_slits, 4) for i in range(int(nSlits)+2)]
+zpos_slits = [-round(corner_fence - i * width_slits, 4) for i in range(int(nSlits)+1)]
 print(zpos_slits)
 endofz = corner_fence+depth_fence
 frontofz = -endofz
@@ -262,11 +264,6 @@ m.add_physical(front_surf, "Front_Surfaces")
 m.add_physical(back_surf, "Back_Surfaces")
 m.add_physical(volumes_before, "Volume 1")
 m.add_physical(volumes_after, "Volume 2")
-
-
-
-
-
 
 
 m.synchronize()

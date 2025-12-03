@@ -29,16 +29,13 @@
 
 
 /define/boundary-conditions zone-type slits1 wall
-/define/boundary-conditions zone-type slits1 interior
-
-
-/define/user-defined interpreted-functions "/home/joel/Schreibtisch/Fence_Paper/ning_etal/simulations/profiles_u_05.txt" cpp 10000 no
+/define/boundary-conditions zone-type slits2 interior
 
 define/boundary-conditions velocity-inlet inlet n n y y y y "udf" steady_velo n 0 y y y "udf" k_profile y y "udf" om_profile
 
 /solve/set limits 1 5e+10 1e-14 1e-20 1e+12
 
-/solve/monitors/residual 1e-6 1e-4 1e-4 1e-4 1e-6 1e-6
+/solve/monitors/residual/convergence-criteria 1e-6 1e-4 1e-4 1e-4 1e-6 1e-6
 
 /solve/initialize/compute-defaults velocity-inlet inlet
 /solve/initialize initialize-flow

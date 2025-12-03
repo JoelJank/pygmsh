@@ -1,6 +1,6 @@
 {
     "name": "Bigfence_3D",
-    "height_of_fences": 0.1,
+    "height_of_fences": 0.4,
     "depth_fence": 7.6,
     "xpos_firstfence": 100,
     "width_of_slits": 0.05,

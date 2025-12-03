@@ -41,7 +41,7 @@ def save_json_to_savespace(file_path):
         raise ValueError("No 'name_settings' key found in the JSON file.")
     
     save_dir = os.path.dirname(save_path)
-    new_file_path = os.path.join(save_dir, f"{name_settings}_settings.json")
+    new_file_path = f"{save_dir}/{name_settings}.json"
     os.makedirs(save_dir, exist_ok=True)
     
     with open(new_file_path, 'w') as f:

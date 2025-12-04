@@ -3,7 +3,7 @@ import gmsh
 import math
 import os
 import numpy as np
-from utils.meshcalc import inflationcalculation
+from utils.meshcalc_spline import infcalc_spline
 from utils.json import json_read
 from utils.splineread import read_height_file
 from utils.newton import point_on_curve
@@ -31,6 +31,7 @@ meshFirstLayerHeight = settings["mesh_firstlayerheight"]
 meshGrowthrate = settings["mesh_growthrate"]
 meshNumLayers = settings["inflation_layers"]
 meshResolution = settings["mesh_resolution"]
+meshGrowthAfterInflation = settings["meshgrowtrate_afterinflation"]
 
 #Savespace
 savespace = settings["savespace"]
@@ -121,6 +122,7 @@ for i in range(len(distanceToFenceTopSorted)):
             inner_list.append(round(manipulatePointsOnSpline[j][1],5))
             j+=1
             
+            
 
 
 fenceAllPoints = [[] for _ in range(len(fencePoints)+2)]
@@ -137,15 +139,13 @@ for i in range (1,len(fencePoints)+1):
             fenceAllPoints[i].append(point)
     TopEndPoint = gmshm.occ.addPoint(currentX, channelHeight, 0, meshResolution)
     fenceAllPoints[i].append(TopEndPoint)
-            
 
 gmshm.occ.synchronize()
 fencePartPoints = np.abs(calculateArray[:,1])
-fencePartLengths = [] #WICHTIGES ARRAY!!!!
+fencePartLengths = [fencePartPoints[0]] #WICHTIGES ARRAY!!!!
 for i in range(len(fencePartPoints)-1):
-    length = fencePartPoints[i+1] - fencePartPoints[i]
+    length =  fencePartPoints[i+1] - fencePartPoints[i]
     fencePartLengths.append(abs(length)) 
-print(fencePartPoints)
 
 for j in range(len(fencePartPoints)):
     if fencePartPoints[j] != 0:
@@ -156,54 +156,80 @@ for j in range(len(fencePartPoints)):
         fenceAllPoints[-1].append(pointOutlet)
 gmshm.occ.synchronize()
 
+
+meshdata, toppoints, nbisoben = infcalc_spline(meshFirstLayerHeight, meshGrowthrate, meshNumLayers, channelHeight, meshGrowthAfterInflation, fencePartLengths)
+meshdata[:,0] = [int(x[0]) + 1 for x in meshdata]
+nbisoben[0] = int(nbisoben[0]) + 1
+print(f"Height of last layer at top boundary: {nbisoben[1]}")
+
+difftotopofinflation = toppoints - fencePartPoints[-1] 
+topofinflation = []
+topofinflation.append(toppoints)
+for i in range (fencesNum):
+    ytopofinflation = fencePoints[i][-1] + difftotopofinflation
+    topofinflation.append(ytopofinflation) 
+topofinflation.append(toppoints)
+
+inflationPointsFences =  []
+
+point = gmshm.occ.addPoint(splineX[0], topofinflation[0], 0, meshResolution)
+fenceAllPoints[0].append(point)
+for i in range (1, len(topofinflation)-1):
+    point = gmshm.occ.addPoint(fencePointsOnSpline[i-1][0], topofinflation[i], 0, meshResolution)
+    inflationPointsFences.append(point)
+point = gmshm.occ.addPoint(splineX[-1], topofinflation[-1], 0, meshResolution)
+fenceAllPoints[-1].append(point)
+gmshm.occ.synchronize()
 print(fenceAllPoints)
-#Hier muss noch berechnung rein für inflation layer, bis wohin der geht!!!
+
+#Create all lines and inner line loops and surface to then fragment 
+
+linesInlet = []
+linesOutlet = []
+linesTop = []
+linesFences = []
+
+outletLine1 = gmshm.occ.addLine(windtunnelPoints[1], fenceAllPoints[-1][0])
+linesOutlet.append(outletLine1)
+for i in range(len(fenceAllPoints[-1])-1):
+    line = gmshm.occ.addLine(fenceAllPoints[-1][i], fenceAllPoints[-1][i+1])
+    linesOutlet.append(line)
+outletLineLast = gmshm.occ.addLine(fenceAllPoints[-1][-1], windtunnelPoints[2])
+linesOutlet.append(outletLineLast)
+
+inletLineLast = gmshm.occ.addLine(windtunnelPoints[3], fenceAllPoints[0][-1])
+linesInlet.append(inletLineLast)
+for i in range(len(fenceAllPoints[0])-1,0,-1):
+    line = gmshm.occ.addLine(fenceAllPoints[0][i], fenceAllPoints[0][i-1])
+    linesInlet.append(line)
+inletLine1 = gmshm.occ.addLine(fenceAllPoints[0][0], windtunnelPoints[0])
+linesInlet.append(inletLine1)
+
+topLineLast = gmshm.occ.addLine(windtunnelPoints[2], fenceAllPoints[-2][-1])
+linesTop.append(topLineLast)
+for i in range(len(fenceAllPoints)-2,1,-1):
+    print(i)
+    line = gmshm.occ.addLine(fenceAllPoints[i][-1], fenceAllPoints[i-1][-1])
+    linesTop.append(line)
+topLine1 = gmshm.occ.addLine(fenceAllPoints[1][-1], windtunnelPoints[3])
+linesTop.append(topLine1)
+
+outerLineLoop = gmshm.occ.addCurveLoop([spline] + linesOutlet + linesTop + linesInlet)
+surfaceWindtunnel = gmshm.occ.addPlaneSurface([outerLineLoop])
 
 
-#Create vertical and 
-#Hier weiter machen nach Skizze die ich fotografiert habe
 
 
 
-#DRAN DENKEN: GEOMETRIE MUSS NOCH GETEILT WERDEN!!!!! mit occ. arbeiten maybe
-#AUßERDEM: SICHERSTELLEN DAS 0. UND LETZTER PUNKT PUNKT DES SPLINES IMMER AUF Y=0
-"""
-geo = pygmsh.geo.Geometry()
-m = geo.__enter__()
 
 
-windtunnelPoints[0] = m.add_point([splineX[0], splineY[0], splineZ[0]], meshResolution)
-windtunnelPoints[1] = m.add_point([splineX[-1] , splineY[-1], splineZ[-1]], meshResolution)
-windtunnelPoints[2] = m.add_point([splineX[-1], splineY[-1] + channelHeight, splineZ[-1]], meshResolution)
-windtunnelPoints[3] = m.add_point([splineX[0], splineY[0] + channelHeight, splineZ[0]], meshResolution)
-
-for i in range(len(splineX)-2): #until -2 because first and last are in windtunnelPoints
-    splinePoints[i] = m.add_point(
-        [splineX[i+1], #+1 because first is in windtunnelPoints
-         splineY[i+1], 
-         splineZ[i+1]], 
-         meshResolution)
-    
-spline = m.add_spline([windtunnelPoints[0]] + splinePoints.tolist() + [windtunnelPoints[1]])
-m.synchronize()
-splineID = gmshm.getEntities(1)[0][0]
-print(splineID)
-
-fencesLastFenceX = fencesFirstPosX + (fencesNum - 1) * fencesDistance
-splineLastFence = fencesLastFenceX / fencesLastFenceX
-print(splineLastFence)
-
-for i in range(fencesNum):
-    targetX = fencesFirstPosX + i * fencesDistance
-    pointsOnSpline = point_on_curve(splineID, targetX, start = splineLastFence)
-    print(f"Fence: {i+1}: TargetX: {targetX}; FoundX: {pointsOnSpline[0]}")
-    fenceLowPoints[i] = m.add_point([pointsOnSpline[0], pointsOnSpline[1], pointsOnSpline[2]], meshResolution)
 
 
-m.synchronize()
-gmshm.geo.splitCurve
-"""
-gmshm.geo.synchronize()
+
+print(meshdata, toppoints, nbisoben)
+
+
+gmshm.occ.synchronize()
 gmshm.mesh.generate(2)
 gmsh.write(savespace)
 

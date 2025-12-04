@@ -66,22 +66,21 @@ gmsh.initialize()
 gmsh.model.add("Spline2DModel")
 gmshm = gmsh.model
 
-windtunnelPoints[0] = gmshm.geo.addPoint(splineX[0], splineY[0], splineZ[0], meshResolution)
-windtunnelPoints[1] = gmshm.geo.addPoint(splineX[-1] , splineY[-1], splineZ[-1], meshResolution)
-windtunnelPoints[2] = gmshm.geo.addPoint(splineX[-1], splineY[-1] + channelHeight, splineZ[-1], meshResolution)
-windtunnelPoints[3] = gmshm.geo.addPoint(splineX[0], splineY[0] + channelHeight, splineZ[0], meshResolution)
+windtunnelPoints[0] = gmshm.occ.addPoint(splineX[0], splineY[0], splineZ[0], meshResolution)
+windtunnelPoints[1] = gmshm.occ.addPoint(splineX[-1] , splineY[-1], splineZ[-1], meshResolution)
+windtunnelPoints[2] = gmshm.occ.addPoint(splineX[-1], splineY[-1] + channelHeight, splineZ[-1], meshResolution)
+windtunnelPoints[3] = gmshm.occ.addPoint(splineX[0], splineY[0] + channelHeight, splineZ[0], meshResolution)
 
 for i in range(len(splineX)-2):
-    splinePoints[i] = gmshm.geo.addPoint(
+    splinePoints[i] = gmshm.occ.addPoint(
         splineX[i+1], #+1 because first is in windtunnelPoints
         splineY[i+1], 
         splineZ[i+1], 
         meshResolution)
     
 splinePointComplete = [windtunnelPoints[0]] + splinePoints.tolist() + [windtunnelPoints[1]]
-spline = gmshm.geo.add_spline(splinePointComplete)
+spline = gmshm.occ.addSpline(splinePointComplete)
 gmshm.occ.synchronize()
-gmshm.geo.synchronize()
 fencesLastFenceX = fencesFirstPosX + (fencesNum - 1) * fencesDistance
 splineLastFence = fencesLastFenceX / channelWidth
 
@@ -94,8 +93,8 @@ for i in range(fencesNum):
     if compareSplinePoints is not None:
         fenceLowPoints[i] = splinePointComplete[compareSplinePoints]
     else:
-        fenceLowPoints[i] = gmshm.geo.addPoint(pointsOnSpline[0], pointsOnSpline[1], pointsOnSpline[2], meshResolution)
-gmshm.geo.synchronize()
+        fenceLowPoints[i] = gmshm.occ.addPoint(pointsOnSpline[0], pointsOnSpline[1], pointsOnSpline[2], meshResolution)
+gmshm.occ.synchronize()
 
 distanceToFenceTop = np.copy(fencePointsOnSpline)
 distanceToFenceTop[:,1] = distanceToFenceTop[:,1] - fencesHeight
@@ -123,7 +122,20 @@ for i in range(len(distanceToFenceTopSorted)):
 
 print(fencePointsOnSpline)
 print(fencePoints)
-        
+
+fenceAllPoints = [[] for _ in range(len(fencePoints)+2)]
+#Create Points on Fence:
+
+for i in range (1,len(fencePoints)+1):
+    currentFence = fencePoints[i-1]
+    currentX = fencePointsOnSpline[i-1][0]
+    for j in range(len(currentFence)):
+        if currentFence[j] is not None:
+            point = gmshm.occ.addPoint(currentX, currentFence[j], 0, meshResolution)
+            gmshm.occ.synchronize()
+            fenceAllPoints[i].append(point)
+print(fenceAllPoints)
+            
 #Hier weiter machen nach Skizze die ich fotografiert habe
 
 
@@ -164,11 +176,10 @@ for i in range(fencesNum):
 
 m.synchronize()
 gmshm.geo.splitCurve
-
+"""
 gmshm.geo.synchronize()
 gmshm.mesh.generate(2)
 gmsh.write(savespace)
-"""
 
 
 

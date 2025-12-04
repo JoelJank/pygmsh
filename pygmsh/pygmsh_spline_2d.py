@@ -217,6 +217,31 @@ linesTop.append(topLine1)
 outerLineLoop = gmshm.occ.addCurveLoop([spline] + linesOutlet + linesTop + linesInlet)
 surfaceWindtunnel = gmshm.occ.addPlaneSurface([outerLineLoop])
 
+#Create Fence vertical lines
+fencesLines = [[] for _ in range(fencesNum)]
+
+for i in range (fencesNum):
+    j = i+1
+    currentPointOnSpline = splinePoints[i]
+    currentInflationPoint = inflationPointsFences[i]
+    currentFencePoints = fenceAllPoints[j]
+    line = gmshm.occ.addLine(currentPointOnSpline, currentFencePoints[0])
+    fencesLines[i].append(line)
+    for k in range(len(currentFencePoints)-2):
+        print(k)
+        line = gmshm.occ.addLine(currentFencePoints[k], currentFencePoints[k+1])
+        fencesLines[i].append(line)
+    line = gmshm.occ.addLine(currentFencePoints[-2], currentInflationPoint)
+    fencesLines[i].append(line)
+    line = gmshm.occ.addLine(currentInflationPoint, currentFencePoints[-1])
+    fencesLines[i].append(line)
+gmshm.occ.synchronize()
+    
+    
+    
+#Da Inlet andersherum definiert muss hier wohl 1/progressionfaktor angewandt werden
+    
+
 
 
 

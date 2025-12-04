@@ -136,7 +136,7 @@ for i in range (1,len(fencePoints)+1):
             gmshm.occ.synchronize()
             fenceAllPoints[i].append(point)
     TopEndPoint = gmshm.occ.addPoint(currentX, channelHeight, 0, meshResolution)
-    fenceAllPoints[i+1].append(TopEndPoint)
+    fenceAllPoints[i].append(TopEndPoint)
             
 
 gmshm.occ.synchronize()

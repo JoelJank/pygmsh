@@ -3,25 +3,25 @@ import gmsh
 import math
 import numpy as np
 from utils.meshcalc import inflationcalculation
-from utils.json import json_read2D
+from utils.json import json_read as json_read2D
 
 settings_path = "../config/settings.json"
     
 settings = json_read2D(settings_path)
 
-nFences =  settings["nFences"]
-hFences = settings["hFences"]
-dxFences = settings["dxFences"]
-nSlits = settings["nSlits"]
-hChannel = settings["hChannel"]
-lChannel = settings["lChannel"]
-xfirstfence = settings["xfirstfence"]
-resolution = settings["resolution"]
-meshFreesize = settings["meshFreesize"]
-meshFirstlayerheight = settings["meshFirstlayerheight"]
-meshGrowthrate = settings["meshGrowthrate"]
-meshNumberofinflationlayers = settings["meshNumberofinflationlayers"]
-meshgrowthafterinflation = settings["meshgrowthafterinflation"]
+nFences =  settings["number_of_fences"]
+hFences = settings["height_of_fences"]
+dxFences = settings["distance_of_fences"]
+nSlits = settings["number_of_slits"]
+hChannel = settings["height_of_channel"]
+lChannel = settings["width_of_channel"]
+xfirstfence = settings["xpos_firstfence"]
+resolution = settings["mesh_resolution"]
+meshFreesize = settings["mesh_freesize"]
+meshFirstlayerheight = settings["mesh_firstlayerheight"]
+meshGrowthrate = settings["mesh_growthrate"]
+meshNumberofinflationlayers = settings["inflation_layers"]
+meshgrowthafterinflation = settings["meshgrowtrate_afterinflation"]
 savespace = settings["savespace"]
 
 

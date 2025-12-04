@@ -44,8 +44,6 @@ splineX = [point[0] for point in splineData]
 splineY = [point[1] for point in splineData]
 splineZ = [point[2] for point in splineData]
 
-print(splineX)
-
 dunesHeightdiff = max(splineY) - min(splineY)
 if dunesHeightdiff > fencesHeight:
     channelHeight = 10*dunesHeightdiff
@@ -86,7 +84,6 @@ gmshm.occ.synchronize()
 gmshm.geo.synchronize()
 fencesLastFenceX = fencesFirstPosX + (fencesNum - 1) * fencesDistance
 splineLastFence = fencesLastFenceX / channelWidth
-print(splineLastFence)
 
 for i in range(fencesNum):
     targetX = fencesFirstPosX + i * fencesDistance
@@ -100,17 +97,34 @@ for i in range(fencesNum):
         fenceLowPoints[i] = gmshm.geo.addPoint(pointsOnSpline[0], pointsOnSpline[1], pointsOnSpline[2], meshResolution)
 gmshm.geo.synchronize()
 
+distanceToFenceTop = np.copy(fencePointsOnSpline)
+distanceToFenceTop[:,1] = distanceToFenceTop[:,1] - fencesHeight
+
+distanceToFenceTopSorted = distanceToFenceTop[distanceToFenceTop[:,1].argsort()[::-1]] # sort by Y values
+
+fencePoints = [[] for _ in range(len(distanceToFenceTopSorted))]
+manipulatePointsOnSpline = np.copy(fencePointsOnSpline)
+
+
+for i in range(len(distanceToFenceTopSorted)):
+    currentPoints = []
+    
+    currentDistance = distanceToFenceTopSorted[i]
+    if currentDistance[1] >= 0:
+        for inner_list in fencePoints:
+            inner_list.append(None)
+    else:
+        manipulatePointsOnSpline[:,1] += abs(currentDistance[1])
+        distanceToFenceTopSorted[:,1] += abs(currentDistance[1])
+        j = 0
+        for inner_list in fencePoints:
+            inner_list.append(round(manipulatePointsOnSpline[j][1],5))
+            j+=1
+
 print(fencePointsOnSpline)
-
-inlet = gmshm.geo.addLine(windtunnelPoints[3], windtunnelPoints[0])
-outlet = gmshm.geo.addLine(windtunnelPoints[1], windtunnelPoints[2])
-top = gmshm.geo.addLine(windtunnelPoints[2], windtunnelPoints[3])
-plane_surface = gmshm.geo.addCurveLoop([spline, outlet, top, inlet])
-surfaceID = gmshm.geo.addPlaneSurface([plane_surface])
-
-fencePointsOnSplineSortedY = fencePointsOnSpline[fencePointsOnSpline[:,1].argsort()] # sort by Y values
+print(fencePoints)
+        
 #Hier weiter machen nach Skizze die ich fotografiert habe
-print(fencePointsOnSplineSortedY)
 
 
 
@@ -150,10 +164,11 @@ for i in range(fencesNum):
 
 m.synchronize()
 gmshm.geo.splitCurve
-"""
+
 gmshm.geo.synchronize()
 gmshm.mesh.generate(2)
 gmsh.write(savespace)
+"""
 
 
 

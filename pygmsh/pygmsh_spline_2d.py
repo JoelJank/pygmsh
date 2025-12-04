@@ -100,6 +100,7 @@ distanceToFenceTop = np.copy(fencePointsOnSpline)
 distanceToFenceTop[:,1] = distanceToFenceTop[:,1] - fencesHeight
 
 distanceToFenceTopSorted = distanceToFenceTop[distanceToFenceTop[:,1].argsort()[::-1]] # sort by Y values
+print(distanceToFenceTopSorted)
 
 fencePoints = [[] for _ in range(len(distanceToFenceTopSorted))]
 manipulatePointsOnSpline = np.copy(fencePointsOnSpline)
@@ -119,11 +120,11 @@ for i in range(len(distanceToFenceTopSorted)):
         for inner_list in fencePoints:
             inner_list.append(round(manipulatePointsOnSpline[j][1],5))
             j+=1
+            
 
-print(fencePointsOnSpline)
-print(fencePoints)
 
 fenceAllPoints = [[] for _ in range(len(fencePoints)+2)]
+
 #Create Points on Fence:
 
 for i in range (1,len(fencePoints)+1):
@@ -134,13 +135,28 @@ for i in range (1,len(fencePoints)+1):
             point = gmshm.occ.addPoint(currentX, currentFence[j], 0, meshResolution)
             gmshm.occ.synchronize()
             fenceAllPoints[i].append(point)
-print(fenceAllPoints)
             
+
+gmshm.occ.synchronize()
+calculateArray = np.copy(distanceToFenceTopSorted) 
+calculateArray_reversed = calculateArray[::-1] #WICHTIGES ARRAY: HIERMIT INFLATION BERECHNEN!!!!!
+print(calculateArray_reversed)
+
+for j in range(len(calculateArray_reversed)):
+    if calculateArray_reversed[j][1] != 0:
+        pointInlet = gmshm.occ.addPoint(splineX[0], calculateArray_reversed[j][1], 0, meshResolution)
+        pointOutlet = gmshm.occ.addPoint(splineX[-1], calculateArray_reversed[j][1], 0, meshResolution)
+        gmshm.occ.synchronize()
+        fenceAllPoints[0].append(pointInlet)
+        fenceAllPoints[-1].append(pointOutlet)
+gmshm.occ.synchronize()
+
 #Hier weiter machen nach Skizze die ich fotografiert habe
 
 
 
 #DRAN DENKEN: GEOMETRIE MUSS NOCH GETEILT WERDEN!!!!! mit occ. arbeiten maybe
+#AUßERDEM: SICHERSTELLEN DAS 0. UND LETZTER PUNKT PUNKT DES SPLINES IMMER AUF Y=0
 """
 geo = pygmsh.geo.Geometry()
 m = geo.__enter__()

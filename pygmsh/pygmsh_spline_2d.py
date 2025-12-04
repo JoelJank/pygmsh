@@ -99,8 +99,8 @@ gmshm.occ.synchronize()
 distanceToFenceTop = np.copy(fencePointsOnSpline)
 distanceToFenceTop[:,1] = distanceToFenceTop[:,1] - fencesHeight
 
-distanceToFenceTopSorted = distanceToFenceTop[distanceToFenceTop[:,1].argsort()[::-1]] # sort by Y values
-print(distanceToFenceTopSorted)
+distanceToFenceTopSorted = distanceToFenceTop[distanceToFenceTop[:,1].argsort()[::-1]]
+calculateArray = np.copy(distanceToFenceTopSorted)
 
 fencePoints = [[] for _ in range(len(distanceToFenceTopSorted))]
 manipulatePointsOnSpline = np.copy(fencePointsOnSpline)
@@ -135,22 +135,32 @@ for i in range (1,len(fencePoints)+1):
             point = gmshm.occ.addPoint(currentX, currentFence[j], 0, meshResolution)
             gmshm.occ.synchronize()
             fenceAllPoints[i].append(point)
+    TopEndPoint = gmshm.occ.addPoint(currentX, channelHeight, 0, meshResolution)
+    fenceAllPoints[i+1].append(TopEndPoint)
             
 
 gmshm.occ.synchronize()
-calculateArray = np.copy(distanceToFenceTopSorted) 
-calculateArray_reversed = calculateArray[::-1] #WICHTIGES ARRAY: HIERMIT INFLATION BERECHNEN!!!!!
-print(calculateArray_reversed)
+fencePartPoints = np.abs(calculateArray[:,1])
+fencePartLengths = [] #WICHTIGES ARRAY!!!!
+for i in range(len(fencePartPoints)-1):
+    length = fencePartPoints[i+1] - fencePartPoints[i]
+    fencePartLengths.append(abs(length)) 
+print(fencePartPoints)
 
-for j in range(len(calculateArray_reversed)):
-    if calculateArray_reversed[j][1] != 0:
-        pointInlet = gmshm.occ.addPoint(splineX[0], calculateArray_reversed[j][1], 0, meshResolution)
-        pointOutlet = gmshm.occ.addPoint(splineX[-1], calculateArray_reversed[j][1], 0, meshResolution)
+for j in range(len(fencePartPoints)):
+    if fencePartPoints[j] != 0:
+        pointInlet = gmshm.occ.addPoint(splineX[0], fencePartPoints[j], 0, meshResolution)
+        pointOutlet = gmshm.occ.addPoint(splineX[-1], fencePartPoints[j], 0, meshResolution)
         gmshm.occ.synchronize()
         fenceAllPoints[0].append(pointInlet)
         fenceAllPoints[-1].append(pointOutlet)
 gmshm.occ.synchronize()
 
+print(fenceAllPoints)
+#Hier muss noch berechnung rein für inflation layer, bis wohin der geht!!!
+
+
+#Create vertical and 
 #Hier weiter machen nach Skizze die ich fotografiert habe
 
 

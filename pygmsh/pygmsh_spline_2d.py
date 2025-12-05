@@ -1,4 +1,3 @@
-import pygmsh
 import gmsh
 import math
 import os
@@ -180,7 +179,6 @@ for i in range (1, len(topofinflation)-1):
 point = gmshm.occ.addPoint(splineX[-1], topofinflation[-1], 0, meshResolution)
 fenceAllPoints[-1].append(point)
 gmshm.occ.synchronize()
-print(fenceAllPoints)
 
 #Create all lines and inner line loops and surface to then fragment 
 
@@ -208,7 +206,6 @@ linesInlet.append(inletLine1)
 topLineLast = gmshm.occ.addLine(windtunnelPoints[2], fenceAllPoints[-2][-1])
 linesTop.append(topLineLast)
 for i in range(len(fenceAllPoints)-2,1,-1):
-    print(i)
     line = gmshm.occ.addLine(fenceAllPoints[i][-1], fenceAllPoints[i-1][-1])
     linesTop.append(line)
 topLine1 = gmshm.occ.addLine(fenceAllPoints[1][-1], windtunnelPoints[3])
@@ -222,13 +219,12 @@ fencesLines = [[] for _ in range(fencesNum)]
 
 for i in range (fencesNum):
     j = i+1
-    currentPointOnSpline = splinePoints[i]
+    currentPointOnSpline = fenceLowPoints[i]
     currentInflationPoint = inflationPointsFences[i]
     currentFencePoints = fenceAllPoints[j]
     line = gmshm.occ.addLine(currentPointOnSpline, currentFencePoints[0])
     fencesLines[i].append(line)
     for k in range(len(currentFencePoints)-2):
-        print(k)
         line = gmshm.occ.addLine(currentFencePoints[k], currentFencePoints[k+1])
         fencesLines[i].append(line)
     line = gmshm.occ.addLine(currentFencePoints[-2], currentInflationPoint)
@@ -236,20 +232,6 @@ for i in range (fencesNum):
     line = gmshm.occ.addLine(currentInflationPoint, currentFencePoints[-1])
     fencesLines[i].append(line)
 gmshm.occ.synchronize()
-    
-    
-    
-#Da Inlet andersherum definiert muss hier wohl 1/progressionfaktor angewandt werden
-    
-
-
-
-
-
-
-
-
-
 
 print(meshdata, toppoints, nbisoben)
 

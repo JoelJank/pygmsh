@@ -36,4 +36,4 @@ def point_on_curve(spline_id, target_x, start=None, tol=1e-12, max_iter=50):
         t = max(umin, min(umax, t - f / dxdt))
 
     x_best, y_best, z_best = gmsh.model.getValue(1, spline_id, [t])
-    return [round(x_best, 5), round(y_best, 5), round(z_best, 5)]
+    return [round(x_best, 10), round(y_best, 10), round(z_best, 10)]

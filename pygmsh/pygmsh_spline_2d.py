@@ -102,8 +102,8 @@ for i in range(len(fenceLowPoints)):
     info = gmshm.occ.fragment([(1,spline_numbers[i])], [(0,fenceLowPoints[i])])
     print(info)
     spline_numbers.append(info[0][1][1])
-windtunnelPoints[0] = fenceLowPoints[-1]+1
-windtunnelPoints[1] = fenceLowPoints[-1]+2
+windtunnelPoints[0] = splinePoints[-1]+1
+windtunnelPoints[1] = splinePoints[-1]+2
     
 
 
@@ -242,6 +242,7 @@ for i in range (fencesNum):
     line = gmshm.occ.addLine(currentInflationPoint, currentFencePoints[-1])
     fencesLines[i].append(line)
 gmshm.occ.synchronize()
+print(linesTop[0])
 #Create Surface Loops
 surfaceLoops = [[] for _ in range(fencesNum+1)]
 surfaces = [[] for _ in range(fencesNum+1)]
@@ -333,6 +334,8 @@ gmshm.addPhysicalGroup(1, spline_numbers,num+4)
 gmshm.setPhysicalName(1, num+4, "Bottom")
 gmshm.addPhysicalGroup(2, surfaces,num+5)
 gmshm.setPhysicalName(2, num+5, "Channel")
+print(meshdata)
+
 gmsh.model.occ.synchronize()
 gmshm.mesh.generate(3)
 gmsh.write(savespace)

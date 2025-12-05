@@ -1,9 +1,9 @@
 {
     "name": "3D_firsttest",
-    "number_of_fences": 3,
+    "number_of_fences": 5,
     "height_of_fences": 1.1,
     "distance_of_fences": 2,
-    "xpos_firstfence":25.2,
+    "xpos_firstfence":100,
     "number_of_slits": 16,
     "height_of_channel": 10,
     "width_of_channel": 200,

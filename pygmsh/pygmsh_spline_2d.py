@@ -136,6 +136,7 @@ for i in range(len(distanceToFenceTopSorted)):
 
 
 fenceAllPoints = [[] for _ in range(len(fencePoints)+2)]
+print(fencePoints)
 
 #Create Points on Fence:
 
@@ -190,7 +191,6 @@ for i in range (1, len(topofinflation)-1):
     inflationPointsFences.append(point)
 point = gmshm.occ.addPoint(splineX[-1], topofinflation[-1], 0, meshResolution)
 fenceAllPoints[-1].append(point)
-print(fenceAllPoints)
 gmshm.occ.synchronize()
 
 #Create all lines and inner line loops and surface to then fragment 
@@ -199,7 +199,6 @@ linesInlet = []
 linesOutlet = []
 linesTop = []
 linesFences = []
-print(windtunnelPoints)
 
 outletLine1 = gmshm.occ.addLine(windtunnelPoints[1], fenceAllPoints[-1][0])
 linesOutlet.append(outletLine1)
@@ -290,11 +289,7 @@ for i in range(1,len(spline_numbers)-1):
 gmshm.mesh.setTransfiniteCurve(spline_numbers[0], nBefore, "Progression", 1.0)
 gmshm.mesh.setTransfiniteCurve(linesTop[-1], nBefore, "Progression", 1.0)
 gmshm.mesh.setTransfiniteCurve(spline_numbers[-1], nBefore, "Progression", 1.0)
-gmshm.mesh.setTransfiniteCurve(linesTop[0], nBefore, "Progression", 1.0)
-
-#Set transfinite surfaces
-print(fenceLowPoints)
-print(fenceAllPoints[1][-1])
+gmshm.mesh.setTransfiniteCurve(linesTop[0], nBefore, "Progression", 1.0)        
 
 for i in range(1,len(surfaces)-1):
     gmshm.mesh.setTransfiniteSurface(surfaces[i], "Right", [fenceLowPoints[i-1], fenceLowPoints[i], fenceAllPoints[i+1][-1], fenceAllPoints[i][-1]])
@@ -303,12 +298,43 @@ gmshm.mesh.setTransfiniteSurface(surfaces[0], "Right", [windtunnelPoints[0], fen
 gmshm.mesh.setRecombine(2,surfaces[0])
 gmshm.mesh.setTransfiniteSurface(surfaces[-1], "Right", [fenceLowPoints[-1], windtunnelPoints[1], windtunnelPoints[2], fenceAllPoints[-2][-1]])
 gmshm.mesh.setRecombine(2,surfaces[-1])
-
-
-print(meshdata, toppoints, nbisoben)
-
 gmshm.occ.synchronize()
-gmshm.mesh.generate(2)
+
+lettrough_all = []
+for i in range(len(fencesLines)):
+    fencelines = []
+    letthroughlines = []
+    currentPoints = fencePoints[i]
+    j = 0
+    while currentPoints[j] <= fencesHeight:
+        fencelines.append(fencesLines[i][j])
+        j+=1
+        if j >= len(currentPoints):
+            break
+    gmshm.addPhysicalGroup(1, fencelines, i+1)
+    gmshm.setPhysicalName(1, i+1, f"Fence{i+1}")
+    letthroughlines = fencesLines[i][j:]
+    lettrough_all.append(letthroughlines)
+
+flat_lettrough = [element for sublist in lettrough_all for element in sublist]
+gmshm.addPhysicalGroup(1, flat_lettrough, fencesNum + 1)
+gmshm.setPhysicalName(1, fencesNum + 1, "Letthroughs")
+
+
+
+num = fencesNum + 1
+gmshm.addPhysicalGroup(1, linesInlet,num+1)
+gmshm.setPhysicalName(1, num+1, "Inlet")
+gmshm.addPhysicalGroup(1, linesOutlet,num+2)
+gmshm.setPhysicalName(1, num+2, "Outlet")
+gmshm.addPhysicalGroup(1, linesTop,num+3)
+gmshm.setPhysicalName(1, num+3, "Top")
+gmshm.addPhysicalGroup(1, spline_numbers,num+4)
+gmshm.setPhysicalName(1, num+4, "Bottom")
+gmshm.addPhysicalGroup(2, surfaces,num+5)
+gmshm.setPhysicalName(2, num+5, "Channel")
+gmsh.model.occ.synchronize()
+gmshm.mesh.generate(3)
 gmsh.write(savespace)
 
 

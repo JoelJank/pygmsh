@@ -96,6 +96,17 @@ for i in range(fencesNum):
         fenceLowPoints[i] = gmshm.occ.addPoint(pointsOnSpline[0], pointsOnSpline[1], pointsOnSpline[2], meshResolution)
 gmshm.occ.synchronize()
 
+spline_numbers = [spline]
+
+for i in range(len(fenceLowPoints)):
+    info = gmshm.occ.fragment([(1,spline_numbers[i])], [(0,fenceLowPoints[i])])
+    print(info)
+    spline_numbers.append(info[0][1][1])
+windtunnelPoints[0] = fenceLowPoints[-1]+1
+windtunnelPoints[1] = fenceLowPoints[-1]+2
+    
+
+
 distanceToFenceTop = np.copy(fencePointsOnSpline)
 distanceToFenceTop[:,1] = distanceToFenceTop[:,1] - fencesHeight
 
@@ -141,10 +152,12 @@ for i in range (1,len(fencePoints)+1):
 
 gmshm.occ.synchronize()
 fencePartPoints = np.abs(calculateArray[:,1])
+fencePartPoints = [i for i in fencePartPoints if i !=0]
 fencePartLengths = [fencePartPoints[0]] #WICHTIGES ARRAY!!!!
 for i in range(len(fencePartPoints)-1):
     length =  fencePartPoints[i+1] - fencePartPoints[i]
     fencePartLengths.append(abs(length)) 
+print(fencePartPoints)
 
 for j in range(len(fencePartPoints)):
     if fencePartPoints[j] != 0:
@@ -154,7 +167,6 @@ for j in range(len(fencePartPoints)):
         fenceAllPoints[0].append(pointInlet)
         fenceAllPoints[-1].append(pointOutlet)
 gmshm.occ.synchronize()
-
 
 meshdata, toppoints, nbisoben = infcalc_spline(meshFirstLayerHeight, meshGrowthrate, meshNumLayers, channelHeight, meshGrowthAfterInflation, fencePartLengths)
 meshdata[:,0] = [int(x[0]) + 1 for x in meshdata]
@@ -178,6 +190,7 @@ for i in range (1, len(topofinflation)-1):
     inflationPointsFences.append(point)
 point = gmshm.occ.addPoint(splineX[-1], topofinflation[-1], 0, meshResolution)
 fenceAllPoints[-1].append(point)
+print(fenceAllPoints)
 gmshm.occ.synchronize()
 
 #Create all lines and inner line loops and surface to then fragment 
@@ -186,6 +199,7 @@ linesInlet = []
 linesOutlet = []
 linesTop = []
 linesFences = []
+print(windtunnelPoints)
 
 outletLine1 = gmshm.occ.addLine(windtunnelPoints[1], fenceAllPoints[-1][0])
 linesOutlet.append(outletLine1)
@@ -211,9 +225,6 @@ for i in range(len(fenceAllPoints)-2,1,-1):
 topLine1 = gmshm.occ.addLine(fenceAllPoints[1][-1], windtunnelPoints[3])
 linesTop.append(topLine1)
 
-outerLineLoop = gmshm.occ.addCurveLoop([spline] + linesOutlet + linesTop + linesInlet)
-surfaceWindtunnel = gmshm.occ.addPlaneSurface([outerLineLoop])
-
 #Create Fence vertical lines
 fencesLines = [[] for _ in range(fencesNum)]
 
@@ -232,9 +243,58 @@ for i in range (fencesNum):
     line = gmshm.occ.addLine(currentInflationPoint, currentFencePoints[-1])
     fencesLines[i].append(line)
 gmshm.occ.synchronize()
+#Create Surface Loops
+surfaceLoops = [[] for _ in range(fencesNum+1)]
+surfaces = [[] for _ in range(fencesNum+1)]
+#First surface loop (between inlet and first fence)
+surfaceLoops[0] = gmshm.occ.addCurveLoop([spline_numbers[0]]+fencesLines[0]+[linesTop[-1]]+linesInlet)
+surfaces[0] = gmshm.occ.addPlaneSurface([surfaceLoops[0]])
+#Surfaces between fences
+for i in range(1,fencesNum):
+    surfaceLoops[i] = gmshm.occ.addCurveLoop(
+        [spline_numbers[i]]+
+        fencesLines[i]+
+        [linesTop[-i-1]]+
+        [-l for l in reversed(fencesLines[i-1])]
+    )
+    surfaces[i] = gmshm.occ.addPlaneSurface([surfaceLoops[i]])
+
+surfaceLoops[-1] = gmshm.occ.addCurveLoop(
+    [spline_numbers[-1]]+
+    linesOutlet+
+    [linesTop[0]]+
+    [-l for l in reversed(fencesLines[-1])]
+)
+surfaces[-1] = gmshm.occ.addPlaneSurface([surfaceLoops[-1]])
+gmshm.occ.synchronize()
+#Meshing -> Set transfinite curves
+
+for i in range(len(linesInlet)-1):
+    j= i+1
+    gmshm.mesh.setTransfiniteCurve(linesInlet[-j], meshdata[i][0], "Progression", 1/meshGrowthrate)
+    gmshm.mesh.setTransfiniteCurve(linesOutlet[i], meshdata[i][0], "Progression", meshGrowthrate)
+    for j in range(len(fencesLines)):
+        gmshm.mesh.setTransfiniteCurve(fencesLines[j][i], meshdata[i][0], "Progression", meshGrowthrate)
+
+gmshm.mesh.setTransfiniteCurve(linesInlet[0], nbisoben[0], "Progression", 1/meshGrowthAfterInflation)
+gmshm.mesh.setTransfiniteCurve(linesOutlet[-1], nbisoben[0], "Progression", meshGrowthAfterInflation)
+for j in range(len(fencesLines)):
+    gmshm.mesh.setTransfiniteCurve(fencesLines[j][-1], nbisoben[0], "Progression", meshGrowthAfterInflation)
+
+nBefore = math.ceil(fencesFirstPosX / meshFreesize)+1
+nBetween = math.ceil(fencesDistance / meshFreesize)+1
+for i in range(1,len(spline_numbers)-1):
+    j = i+1
+    gmshm.mesh.setTransfiniteCurve(spline_numbers[i], nBetween, "Progression", 1.0)
+    gmshm.mesh.setTransfiniteCurve(linesTop[-j], nBetween, "Progression", 1.0)
+gmshm.mesh.setTransfiniteCurve(spline_numbers[0], nBefore, "Progression", 1.0)
+gmshm.mesh.setTransfiniteCurve(linesTop[-1], nBefore, "Progression", 1.0)
+gmshm.mesh.setTransfiniteCurve(spline_numbers[-1], nBefore, "Progression", 1.0)
+gmshm.mesh.setTransfiniteCurve(linesTop[0], nBefore, "Progression", 1.0)
+
+
 
 print(meshdata, toppoints, nbisoben)
-
 
 gmshm.occ.synchronize()
 gmshm.mesh.generate(2)

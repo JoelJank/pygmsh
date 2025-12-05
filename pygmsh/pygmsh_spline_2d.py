@@ -292,6 +292,17 @@ gmshm.mesh.setTransfiniteCurve(linesTop[-1], nBefore, "Progression", 1.0)
 gmshm.mesh.setTransfiniteCurve(spline_numbers[-1], nBefore, "Progression", 1.0)
 gmshm.mesh.setTransfiniteCurve(linesTop[0], nBefore, "Progression", 1.0)
 
+#Set transfinite surfaces
+print(fenceLowPoints)
+print(fenceAllPoints[1][-1])
+
+for i in range(1,len(surfaces)-1):
+    gmshm.mesh.setTransfiniteSurface(surfaces[i], "Right", [fenceLowPoints[i-1], fenceLowPoints[i], fenceAllPoints[i+1][-1], fenceAllPoints[i][-1]])
+    gmshm.mesh.setRecombine(2,surfaces[i])
+gmshm.mesh.setTransfiniteSurface(surfaces[0], "Right", [windtunnelPoints[0], fenceLowPoints[0], fenceAllPoints[1][-1], windtunnelPoints[3]])
+gmshm.mesh.setRecombine(2,surfaces[0])
+gmshm.mesh.setTransfiniteSurface(surfaces[-1], "Right", [fenceLowPoints[-1], windtunnelPoints[1], windtunnelPoints[2], fenceAllPoints[-2][-1]])
+gmshm.mesh.setRecombine(2,surfaces[-1])
 
 
 print(meshdata, toppoints, nbisoben)

@@ -1,5 +1,7 @@
 # pygmsh
-TODO DRINGEND!!!!: HERAUFINDEN WARUM BEI BESTIMMTEN ZAUNHÖHE DAS MESH NICHT MEHR KLAPPT -> vielleicht mal andere Breite probieren?
+TODO: Write function from mathematica for y+ height calculation in python so one can integrate directly
+TODO: Doc functions and rewrite readme
+TODO: Write main function that reads from the json files depending on what case is needed
 This small git project is subjected to a specific application of the gmsh api to use it in the simulation of an atmospheric boundary layer with a present obstacle such as an sand fence. 
 
 The necessary steps are:

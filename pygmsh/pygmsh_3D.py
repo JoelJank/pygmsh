@@ -133,9 +133,8 @@ for i in range(len(bottom_surfaces)):
 #Meshing
 #Transfinite Curves for horizontal edges
 #links und rechts vom zaun
-nleftright = math.ceil((depth_fence)/mesh_freesize_zdirection)+1
 nbetweenslits = math.ceil((width_slits)/mesh_between_slits)+1
-nzdirection,_,_  = utils.layercalcuations(depth_fence, mesh_growthrate, mesh_between_slits)
+nzdirection,_,_  = utils.layercalculations(depth_fence, mesh_growthrate, mesh_between_slits)
 nzdirection = math.ceil(nzdirection)+1
 
 

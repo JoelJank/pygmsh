@@ -1,0 +1,11 @@
+{
+    "channelLength": 200,
+    "channelHeight": 4,
+    "channelDepthNextToFence": 1.6,
+    "fenceHeight": 0.1,
+    "fenceDepth": 1.6,
+    "fenceFirstPos": 100,
+    "fenceNum": 1,
+    "fenceSpacing": 20,
+    "slitsWidth": 0.0125
+}

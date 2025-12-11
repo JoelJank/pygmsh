@@ -1,9 +1,12 @@
 import numpy as np
 import math
 
+def inflationlayernumber(h1, growthrate, targetheight):
+    nlayer = math.log(targetheight/h1)/math.log(growthrate)
+    return nlayer
 
 
-def layercalcuations(hparts, growthrate, h1):
+def layercalculations(hparts, growthrate, h1):
     nlayer = math.log(1-(hparts*(1-growthrate)/h1))/math.log(growthrate)
     nextlayer = h1 * growthrate**nlayer
     lastlayer = h1 * growthrate**(nlayer-1)
@@ -18,7 +21,7 @@ def inflationcalculation(h1, growthrate, nlayers, hFence, nparts, hChannel, grow
     heightparts = hFence /nparts
     meshdata = np.empty((nparts+1,2), dtype = object)
     totalheight = totalheightcalculation(h1, growthrate, nlayers)
-    nFirstlayer, nextlayer, lastlayer = layercalcuations(heightparts, growthrate, h1)
+    nFirstlayer, nextlayer, lastlayer = layercalculations(heightparts, growthrate, h1)
     if h1 > heightparts: #wenn h1 direkt größer als Zaunhöhe ist
         for i in range(0,nparts):
             meshdata[i] = [1, heightparts*(1+i)]
@@ -30,14 +33,14 @@ def inflationcalculation(h1, growthrate, nlayers, hFence, nparts, hChannel, grow
                 meshdata[i] = [1, nextlayer]
                 lastlayer = nextlayer
             else:
-                nlayer, nextlayer, lastlayer = layercalcuations(heightparts, growthrate, nextlayer)
+                nlayer, nextlayer, lastlayer = layercalculations(heightparts, growthrate, nextlayer)
                 meshdata[i] = [math.ceil(nlayer), lastlayer]
                 
     sumlayers = np.sum(meshdata[:-1,0]) #auffüllen der restlichen Layer
     remaininglayer = nlayers - sumlayers
     if remaininglayer > 0:
         heightlastlayer = totalheightcalculation(nextlayer, growthrate, remaininglayer)
-        nlayer, nextlayer, lastlayer = layercalcuations(heightlastlayer, growthrate, nextlayer)
+        nlayer, nextlayer, lastlayer = layercalculations(heightlastlayer, growthrate, nextlayer)
         toppoints = heightlastlayer + hFence
         meshdata[-1] = [remaininglayer, lastlayer]
     else:
@@ -45,5 +48,5 @@ def inflationcalculation(h1, growthrate, nlayers, hFence, nparts, hChannel, grow
         meshdata[-1] = [1, lastlayer]
         
     #für inflation bis nach oben
-    nbisoben, nextlayeroben, lastlayeroben = layercalcuations(hChannel-toppoints, growthaferinflation, lastlayer)
+    nbisoben, nextlayeroben, lastlayeroben = layercalculations(hChannel-toppoints, growthaferinflation, lastlayer)
     return meshdata, toppoints, [math.ceil(nbisoben), lastlayeroben]

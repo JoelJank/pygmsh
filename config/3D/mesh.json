@@ -1,0 +1,12 @@
+{
+    "meshXFreesize": 0.5,
+    "meshZFreesize": 0.5,
+    "meshXSpacingSize": 0.05,
+    "meshNumSlits": 3,
+    "inflationFirstLayerHeight": 0.003,
+    "inflationNumLayers": 47,
+    "inflationGrowthrate": 1.1,
+    "meshGrowthrateAfterInflation": 1.05,
+    "meshGrowthrateZDirection": 1.05,
+    "firstlayerheightfence": 0.01
+}

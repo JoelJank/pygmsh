@@ -8,5 +8,6 @@
     "inflationGrowthrate": 1.1,
     "meshGrowthrateAfterInflation": 1.05,
     "meshGrowthrateZDirection": 1.05,
-    "firstlayerheightfence": 0.01
+    "meshGrowthrateXDirection": 1.2,
+    "firstlayerheightfence": 0.005
 }

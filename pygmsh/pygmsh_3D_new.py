@@ -39,6 +39,7 @@ inflationGrowthrate = jsonMesh["inflationGrowthrate"]
 meshGrowthrateAfterInflation = jsonMesh["meshGrowthrateAfterInflation"]
 meshGrowthrateZDirection = jsonMesh["meshGrowthrateZDirection"]
 meshFenceFirstLayerHeight = jsonMesh["firstlayerheightfence"]
+meshGrowthrateXDirection = jsonMesh["meshGrowthrateXDirection"]
 meshResolution = 1
 
 meshdata, toppoints, meshNumLayersTopInflation = meshcalc.inflationcalculation(inflationFirstLayerHeight, 
@@ -159,7 +160,7 @@ if fenceNum != 1: #TODO: MULTIPLE FENCES -> Make growth in x-direction to middle
 
 else:
     allExtrusions = np.empty((4, 3, len(allSurfaces[0])), dtype = object) #allExtrusions[0] = inflation after fence, allExtrusions[1] = inflation before fence
-    _, ehafterFence, totalheight = extrude.extrude_calc(xgrowthrate=meshGrowthrateZDirection, 
+    _, ehafterFence, totalheight = extrude.extrude_calc(xgrowthrate=meshGrowthrateXDirection, #TODO: Save all the importan values to an output log file
                                             meshXFreesize = meshXFreesize, 
                                            firstlayerheight = meshFenceFirstLayerHeight, 
                                            fencespacing = fenceSpacing)
@@ -185,11 +186,21 @@ else:
 
 
 gmshm.occ.synchronize()
-#TODO: Further extrude in x and -x direction to complete the tunnel
+for i in range(len(allSurfaces[0])):
+    for j in range(len(allExtrusions[0])):
+        allExtrusions[2][j][i] = gmshm.occ.extrude([allExtrusions[0][j][i][0]],
+                                                   channelLength/2 - totalheight, 0, 0,
+                                                   numElements = [numAfterXInflation],
+                                                   recombine = True)
+        allExtrusions[3][j][i] = gmshm.occ.extrude([allExtrusions[1][j][i][0]],
+                                                   -channelLength/2 + totalheight, 0,0,
+                                                   numElements = [numAfterXInflation],
+                                                   recombine = True)
+    #TODO: Declare the volumes, surfaces as physical groups + add transfinite volumes here -> hopefully works
 
 gmsh.model.occ.synchronize()
 gmsh.option.setNumber("General.Terminal",0)
-gmshm.mesh.generate(2)
+gmshm.mesh.generate(3)
 gmsh.write(os.path.join(savespace, casename + ".msh"))
 
 

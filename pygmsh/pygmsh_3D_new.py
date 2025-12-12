@@ -158,20 +158,34 @@ if fenceNum != 1: #TODO: MULTIPLE FENCES -> Make growth in x-direction to middle
     print("Currently only one fence is supported in this version.")
 
 else:
-    allExtrusions = np.empty((2, 3, len(allSurfaces[0])), dtype = object) #allExtrusions[0] = extrusion to first fence, allExtrusions[1] = extrusion after fence
+    allExtrusions = np.empty((4, 3, len(allSurfaces[0])), dtype = object) #allExtrusions[0] = inflation after fence, allExtrusions[1] = inflation before fence
     _, ehafterFence, totalheight = extrude.extrude_calc(xgrowthrate=meshGrowthrateZDirection, 
                                             meshXFreesize = meshXFreesize, 
                                            firstlayerheight = meshFenceFirstLayerHeight, 
                                            fencespacing = fenceSpacing)
-    print(ehafterFence)
-    for i in range(len(allSurfaces[0])): #TODO: Add further extrusions from totalheight weg und dann nochmal das gleiche in die andere richtung
+    numAfterXInflation = math.ceil((channelLength/2 - totalheight) / meshXFreesize)+1
+    print(numAfterXInflation)
+    for i in range(len(allSurfaces[0])): #TODO: Alle Volumes als transfinite volume markieren
         for j in range(len(allExtrusions[0])):
 
-            allExtrusions[0][j][i] = gmshm.occ.extrude([(2, allSurfaces[j][i])],
-                                                       totalheight, 0, 0,
-                                                       numElements=ehafterFence[0],
-                                                       heights = ehafterFence[1],
-                                                       recombine=True)
+            # 1. Inflation in +x und -x mit Heights
+            extr_pos = gmshm.occ.extrude([(2, allSurfaces[j][i])],
+                                         totalheight, 0, 0,
+                                         numElements=ehafterFence[0],
+                                         heights=ehafterFence[1],
+                                         recombine=True)
+            extr_neg = gmshm.occ.extrude([(2, allSurfaces[j][i])],
+                                         -totalheight, 0, 0,
+                                         numElements=ehafterFence[0],
+                                         heights=ehafterFence[1],
+                                         recombine=True)
+
+            allExtrusions[0][j][i] = extr_pos
+            allExtrusions[1][j][i] = extr_neg
+
+
+gmshm.occ.synchronize()
+#TODO: Further extrude in x and -x direction to complete the tunnel
 
 gmsh.model.occ.synchronize()
 gmsh.option.setNumber("General.Terminal",0)

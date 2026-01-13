@@ -131,7 +131,7 @@ meshSizeBetweenSlits = round( slitsWidth/ meshNumSlits, 6)
 meshNumSlits = meshNumSlits + 1
 meshNumNextToFence,_,_ = meshcalc.layercalculations(channelDepthNextToFence, meshGrowthrateZDirection, meshSizeBetweenSlits)
 meshNumNextToFence = math.ceil(meshNumNextToFence) + 1
-print(meshNumNextToFence, meshGrowthrateZDirection)
+print(f"Number mesh layer in z-Direction: {meshNumNextToFence}, Growthrate z-Direction: {meshGrowthrateZDirection}")
 gmshm.occ.synchronize()
 for i in range(4):
     gmshm.mesh.setTransfiniteCurve(gmshHorLines[0][i], meshNumNextToFence, "Progression", 1/meshGrowthrateZDirection)
@@ -156,52 +156,73 @@ for i in range(len(allSurfaces[0])):
 gmsh.model.occ.synchronize()
 
 if fenceNum != 1: #TODO: MULTIPLE FENCES -> Make growth in x-direction to middle of the spacing between the fences and then reverse growth?
-    print("Currently only one fence is supported in this version.")
+    print("Currently only one fence is supported in this version.") #Define how all extrusions work so that later behind os.sync same logic can be used
 
 else:
     allExtrusions = np.empty((4, 3, len(allSurfaces[0])), dtype = object) #allExtrusions[0] = inflation after fence, allExtrusions[1] = inflation before fence
-    _, ehafterFence, totalheight = extrude.extrude_calc(xgrowthrate=meshGrowthrateXDirection, #TODO: Save all the importan values to an output log file
+    _, ehafterFence, totalheight = extrude.extrude_calc(xgrowthrate=meshGrowthrateXDirection, #TODO: Save all the important values to an output log file
                                             meshXFreesize = meshXFreesize, 
                                            firstlayerheight = meshFenceFirstLayerHeight, 
                                            fencespacing = fenceSpacing)
     numAfterXInflation = math.ceil((channelLength/2 - totalheight) / meshXFreesize)+1
-    print(numAfterXInflation)
-    for i in range(len(allSurfaces[0])): #TODO: Alle Volumes als transfinite volume markieren
+    print(f"Anzahl an Layern nach Inflation {numAfterXInflation}")
+    volumesAfterFence = []
+    volumesBeforeFence = []
+    for i in range(len(allSurfaces[0])): 
         for j in range(len(allExtrusions[0])):
 
             # 1. Inflation in +x und -x mit Heights
-            extr_pos = gmshm.occ.extrude([(2, allSurfaces[j][i])],
+            extrupos  = gmshm.occ.extrude([(2, allSurfaces[j][i])],
                                          totalheight, 0, 0,
                                          numElements=ehafterFence[0],
                                          heights=ehafterFence[1],
                                          recombine=True)
-            extr_neg = gmshm.occ.extrude([(2, allSurfaces[j][i])],
+            extruneg = gmshm.occ.extrude([(2, allSurfaces[j][i])],
                                          -totalheight, 0, 0,
                                          numElements=ehafterFence[0],
                                          heights=ehafterFence[1],
                                          recombine=True)
+           
+            allExtrusions[0][j][i] = extrupos
+            allExtrusions[1][j][i] = extruneg
+            volumesAfterFence.append(extrupos[1][1])
+            volumesBeforeFence.append(extruneg[1][1])
 
-            allExtrusions[0][j][i] = extr_pos
-            allExtrusions[1][j][i] = extr_neg
 
+
+    gmshm.occ.synchronize()
+    for i in range(len(allSurfaces[0])):
+        for j in range(len(allExtrusions[0])):
+            extrupos = gmshm.occ.extrude([allExtrusions[0][j][i][0]],
+                                                    channelLength/2 - totalheight, 0, 0,
+                                                    numElements = [numAfterXInflation],
+                                                    recombine = True)
+            extruneg = gmshm.occ.extrude([allExtrusions[1][j][i][0]],
+                                                    -channelLength/2 + totalheight, 0,0,
+                                                    numElements = [numAfterXInflation],
+                                                    recombine = True)
+            allExtrusions[2][j][i] = extrupos
+            allExtrusions[3][j][i] = extruneg
+            volumesAfterFence.append(extrupos[1][1])
+            volumesBeforeFence.append(extruneg[1][1])
+        #TODO: Declare surfaces as physical groups 
+
+gmsh.model.occ.synchronize()
+
+for tag in volumesAfterFence:
+    gmshm.mesh.setTransfiniteVolume(tag)
+for tag in volumesBeforeFence:
+    gmshm.mesh.setTransfiniteVolume(tag)
 
 gmshm.occ.synchronize()
-for i in range(len(allSurfaces[0])):
-    for j in range(len(allExtrusions[0])):
-        allExtrusions[2][j][i] = gmshm.occ.extrude([allExtrusions[0][j][i][0]],
-                                                   channelLength/2 - totalheight, 0, 0,
-                                                   numElements = [numAfterXInflation],
-                                                   recombine = True)
-        allExtrusions[3][j][i] = gmshm.occ.extrude([allExtrusions[1][j][i][0]],
-                                                   -channelLength/2 + totalheight, 0,0,
-                                                   numElements = [numAfterXInflation],
-                                                   recombine = True)
-    #TODO: Declare the volumes, surfaces as physical groups + add transfinite volumes here -> hopefully works
+gmshm.addPhysicalGroup(3, volumesAfterFence, tag = -1, name = "Volumes_After_Fence")
+gmshm.addPhysicalGroup(3, volumesBeforeFence, tag = -1, name = "Volumes_Before_Fence")
+
+#TODO: Add Physical Groups for Surfaces!!!! Front, Back, top, bottom, inlet and outlet. All other surfaces declared as interior in one single physical group if possibe. Also add the fence!!
+
+
 
 gmsh.model.occ.synchronize()
 gmsh.option.setNumber("General.Terminal",0)
 gmshm.mesh.generate(3)
 gmsh.write(os.path.join(savespace, casename + ".msh"))
-
-
-

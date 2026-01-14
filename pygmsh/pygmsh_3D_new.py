@@ -207,6 +207,9 @@ else:
             volumesBeforeFence.append(extruneg[1][1])
         #TODO: Declare surfaces as physical groups 
 
+
+allOutlets = [allExtrusions[2][j][i][0][1] for i in range(len(allSurfaces[0])) for j in range(len(allExtrusions[2]))]
+allInlets = [allExtrusions[3][j][i][0][1] for i in range(len(allSurfaces[0])) for j in range(len(allExtrusions[3]))]
 gmsh.model.occ.synchronize()
 
 for tag in volumesAfterFence:
@@ -215,14 +218,20 @@ for tag in volumesBeforeFence:
     gmshm.mesh.setTransfiniteVolume(tag)
 
 gmshm.occ.synchronize()
-gmshm.addPhysicalGroup(3, volumesAfterFence, tag = -1, name = "Volumes_After_Fence")
-gmshm.addPhysicalGroup(3, volumesBeforeFence, tag = -1, name = "Volumes_Before_Fence")
+gmshm.addPhysicalGroup(3, volumesAfterFence, tag = -1, name = "Volumes_After_Fence") #Volumes infront of fence
+gmshm.addPhysicalGroup(3, volumesBeforeFence, tag = -1, name = "Volumes_Before_Fence") #Volumes after fence
+gmshm.addPhysicalGroup(2, allOutlets, tag = -1, name = "Outlet") # Outlet
+gmshm.addPhysicalGroup(2, allInlets, tag = -1, name = "Inlet") # Inlet
 
-#TODO: Add Physical Groups for Surfaces!!!! Front, Back, top, bottom, inlet and outlet. All other surfaces declared as interior in one single physical group if possibe. Also add the fence!!
+
+
+#TODO: Add Physical Groups for Surfaces!!!! Front, Back, top, bottom (determine from extrusion). All other surfaces declared as interior in one single physical group if possibe. Also add the fence!!
 
 
 
+"""
 gmsh.model.occ.synchronize()
 gmsh.option.setNumber("General.Terminal",0)
 gmshm.mesh.generate(3)
 gmsh.write(os.path.join(savespace, casename + ".msh"))
+"""

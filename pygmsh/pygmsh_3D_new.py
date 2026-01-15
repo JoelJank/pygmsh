@@ -225,7 +225,7 @@ gmshm.addPhysicalGroup(2, allInlets, tag = -1, name = "Inlet") # Inlet
 
 
 
-#TODO: Add Physical Groups for Surfaces!!!! Front, Back, top, bottom (determine from extrusion). All other surfaces declared as interior in one single physical group if possibe. Also add the fence!!
+#TODO: Add Physical Groups for Surfaces!!!! Front, Back, top, bottom (determine from extrusion). All other surfaces declared as interior in one single physical group if possibe (don't forget the interior "inlet" and "outlet" at the first extrusion allExtrusions[0] and allExtrusions[1]). Also add the fence!!
 
 
 

@@ -3,3 +3,4 @@
 *.geo
 *.bdf
 __pycache__/
+/test

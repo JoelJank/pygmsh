@@ -58,7 +58,7 @@ if slitsWidth == 0:
     pyFenceSlitsZPos = np.linspace(pyFenceCornersZDir[0], pyFenceCornersZDir[1], 2)
 else:
     nSlits = np.round(fenceDepth / slitsWidth)
-    pyFenceSlitsZPos = np.linspace(pyFenceCornersZDir[0], pyFenceCornersZDir[1], int(nSlits)+1) #BUG: Potential: maybe check if this works correctly for non-integer nSlits
+    pyFenceSlitsZPos = np.linspace(pyFenceCornersZDir[0], pyFenceCornersZDir[1], int(nSlits)+1) 
 
 gmshPoints = np.empty((len(pyFenceSlitsZPos)+2,4), dtype = object)
 
@@ -160,7 +160,7 @@ if fenceNum != 1: #TODO: MULTIPLE FENCES -> Make growth in x-direction to middle
 
 else:
     allExtrusions = np.empty((4, 3, len(allSurfaces[0])), dtype = object) #allExtrusions[0] = inflation after fence, allExtrusions[1] = inflation before fence
-    _, ehafterFence, totalheight = extrude.extrude_calc(xgrowthrate=meshGrowthrateXDirection, #TODO: Save all the important values to an output log file
+    _, ehafterFence, totalheight = extrude.extrude_calc(xgrowthrate=meshGrowthrateXDirection, 
                                             meshXFreesize = meshXFreesize, 
                                            firstlayerheight = meshFenceFirstLayerHeight, 
                                            fencespacing = fenceSpacing)
@@ -171,7 +171,7 @@ else:
     for i in range(len(allSurfaces[0])): 
         for j in range(len(allExtrusions[0])):
 
-            # 1. Inflation in +x und -x mit Heights
+            # 1. Inflation in direction of +x and -x with inflation growing from fence surface
             extrupos  = gmshm.occ.extrude([(2, allSurfaces[j][i])],
                                          totalheight, 0, 0,
                                          numElements=ehafterFence[0],
@@ -193,6 +193,7 @@ else:
     gmshm.occ.synchronize()
     for i in range(len(allSurfaces[0])):
         for j in range(len(allExtrusions[0])):
+            # 2. Extrusion in direction of +x and -x to complete the channel length 
             extrupos = gmshm.occ.extrude([allExtrusions[0][j][i][0]],
                                                     channelLength/2 - totalheight, 0, 0,
                                                     numElements = [numAfterXInflation],
@@ -205,33 +206,54 @@ else:
             allExtrusions[3][j][i] = extruneg
             volumesAfterFence.append(extrupos[1][1])
             volumesBeforeFence.append(extruneg[1][1])
-        #TODO: Declare surfaces as physical groups 
 
-
+gmsh.model.occ.synchronize()
 allOutlets = [allExtrusions[2][j][i][0][1] for i in range(len(allSurfaces[0])) for j in range(len(allExtrusions[2]))]
 allInlets = [allExtrusions[3][j][i][0][1] for i in range(len(allSurfaces[0])) for j in range(len(allExtrusions[3]))]
+allFront = [allExtrusions[k][j][0][5][1] for k in range(len(allExtrusions)) for j in range(len(allExtrusions[0]))]
+allBack = [allExtrusions[k][j][-1][3][1] for k in range(len(allExtrusions)) for j in range(len(allExtrusions[0]))]
+allTop = [allExtrusions[k][-1][j][4][1] for k in range(len(allExtrusions)) for j in range(len(allExtrusions[0][0]))]
+allBottom = [allExtrusions[k][0][j][2][1] for k in range(len(allExtrusions)) for j in range(len(allExtrusions[0][0]))]
+allFenceSurfaces1 = [allSurfaces[0][i] for i in range(1, len(allSurfaces[0])-1, 2)]
+allFenceSurfaces2 = [allSurfaces[0][i] for i in range(2, len(allSurfaces[0]), 2)]
+allFenceFlowTroughs = [allSurfaces[0][0]] + [allSurfaces[0][-1]] + [allSurfaces[i][j] for i in range(1, len(allSurfaces)) for j in range(len(allSurfaces[0]))]
+
+# Interior Surfaces automatisch finden
 gmsh.model.occ.synchronize()
 
-for tag in volumesAfterFence:
-    gmshm.mesh.setTransfiniteVolume(tag)
-for tag in volumesBeforeFence:
-    gmshm.mesh.setTransfiniteVolume(tag)
+# Alle Surfaces holen
+all_surfaces = gmshm.getEntities(2)
+
+# Boundary Surfaces sammeln
+boundary_surfaces = set(allOutlets + allInlets + allFront + allBack + allTop + allBottom + 
+                       allFenceSurfaces1 + allFenceSurfaces2 + allFenceFlowTroughs)
+
+# Interior = Alle Surfaces minus Boundary
+allInteriorSurfaces = [surf for surf in all_surfaces if surf[1] not in boundary_surfaces]
+
+print(f"Total surfaces: {len(all_surfaces)}, Boundary: {len(boundary_surfaces)}, Interior: {len(allInteriorSurfaces)}")
 
 gmshm.occ.synchronize()
-gmshm.addPhysicalGroup(3, volumesAfterFence, tag = -1, name = "Volumes_After_Fence") #Volumes infront of fence
-gmshm.addPhysicalGroup(3, volumesBeforeFence, tag = -1, name = "Volumes_Before_Fence") #Volumes after fence
-gmshm.addPhysicalGroup(2, allOutlets, tag = -1, name = "Outlet") # Outlet
-gmshm.addPhysicalGroup(2, allInlets, tag = -1, name = "Inlet") # Inlet
+
+gmshm.addPhysicalGroup(2, allOutlets, tag = -1, name = "Outlet")
+gmshm.addPhysicalGroup(2, allInlets, tag = -1, name = "Inlet")
+gmshm.addPhysicalGroup(2, allFront, tag = -1, name = "Front")
+gmshm.addPhysicalGroup(2, allBack, tag = -1, name = "Back")
+gmshm.addPhysicalGroup(2, allTop, tag = -1, name = "Top")
+gmshm.addPhysicalGroup(2, allBottom, tag = -1, name = "Bottom")
+#gmshm.addPhysicalGroup(2, [s[1] for s in allInteriorSurfaces], tag = -1, name = "Interior")
+gmshm.addPhysicalGroup(2, allFenceSurfaces1, tag = -1, name = "Fence1")
+gmshm.addPhysicalGroup(2, allFenceSurfaces2, tag = -1, name = "Fence2")
+gmshm.addPhysicalGroup(2, allFenceFlowTroughs, tag = -1, name = "FenceFlowTroughs")
+gmshm.addPhysicalGroup(3, volumesAfterFence, tag = -1, name = "Volumes_After_Fence")
+gmshm.addPhysicalGroup(3, volumesBeforeFence, tag = -1, name = "Volumes_Before_Fence")
 
 
 
-#TODO: Add Physical Groups for Surfaces!!!! Front, Back, top, bottom (determine from extrusion). All other surfaces declared as interior in one single physical group if possibe (don't forget the interior "inlet" and "outlet" at the first extrusion allExtrusions[0] and allExtrusions[1]). Also add the fence!!
-
-
-
-"""
 gmsh.model.occ.synchronize()
 gmsh.option.setNumber("General.Terminal",0)
+gmshm.mesh.removeDuplicateNodes()
 gmshm.mesh.generate(3)
+gmshm.mesh.removeDuplicateNodes()
 gmsh.write(os.path.join(savespace, casename + ".msh"))
-"""
+

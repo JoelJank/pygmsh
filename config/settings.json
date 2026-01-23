@@ -1,17 +1,19 @@
 {
-    "name": "3D_firsttest",
-    "number_of_fences": 5,
-    "height_of_fences": 1.1,
-    "distance_of_fences": 2,
+    "name": "2D_ning",
+    "number_of_fences": 1,
+    "height_of_fences": 1.2,
+    "distance_of_fences": 1,
     "xpos_firstfence":100,
-    "number_of_slits": 16,
+    "number_of_slits": 1,
     "height_of_channel": 10,
     "width_of_channel": 200,
     "mesh_resolution": 1,
-    "mesh_freesize" : 0.25,
-    "mesh_firstlayerheight": 0.003,
-    "inflation_layers": 47,
+    "mesh_freesize" : 0.5,
+    "mesh_firstlayerheight": 0.0000584,
+    "inflation_layers": 96,
     "mesh_growthrate": 1.1,
     "meshgrowtrate_afterinflation": 1.05,
-    "savespace": "../test/mesh.msh"
+    "meshXDirectionFirstLayerHeight": 0.001,
+    "meshXDirectionGrowthRate": 1.2,
+    "savespace": "../test/2D_ning_y+2.msh"
 }

@@ -52,7 +52,6 @@ vertical_lines = np.empty((nFences+2,nSlits+2), dtype = object)
 horizontal_lines = np.empty((2,nFences+1), dtype = object)
 plane_loops = np.empty((nFences+1), dtype = object)
 plane_surfaces = np.empty((nFences+1), dtype= object)
-mesh_inflation = np.empty((nFences+1), dtype = object)
 
 
 #calculations for meshing

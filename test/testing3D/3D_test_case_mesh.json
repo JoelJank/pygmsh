@@ -9,5 +9,5 @@
     "meshGrowthrateAfterInflation": 1.05,
     "meshGrowthrateZDirection": 1.05,
     "meshGrowthrateXDirection": 1.2,
-    "firstlayerheightfence": 0.005
+    "firstlayerheightfence": 0.001
 }

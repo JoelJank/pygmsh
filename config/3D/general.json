@@ -1,5 +1,5 @@
 {
-    "casename": "3D_test_case",
-    "description": "Test case",
+    "casename": "ningetal_model",
+    "description": "ningetal_model",
     "savespace": "/home/joel/Schreibtisch/Github/pygmsh/test/testing3D"
 }

@@ -1,0 +1,10 @@
+{
+    "channel_height": 10000,
+    "channel_width": 100000,
+    "mesh_freesize" : 250,
+    "mesh_firstlayerheight": 6.20211,
+    "mesh_inflationlayers": 39,
+    "mesh_growthrate": 1.1,
+    "mesh_growtrate_afterinflation": 1.05,
+    "savespace": "/home/joel/Schreibtisch/Fences/long_test/y+3000_ustar0_5_growthrate1_1.msh"
+}

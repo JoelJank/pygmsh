@@ -1,6 +1,10 @@
 import numpy as np
 import math
 
+def ypluscalc(targetyplus, dynviscosity, density, velocity):
+    y = targetyplus * (dynviscosity / density) * 1/velocity
+    return y
+
 def inflationlayernumber(h1, growthrate, targetheight):
     nlayer = math.log(targetheight/h1)/math.log(growthrate)
     return nlayer
@@ -50,3 +54,13 @@ def inflationcalculation(h1, growthrate, nlayers, hFence, nparts, hChannel, grow
     #für inflation bis nach oben
     nbisoben, nextlayeroben, lastlayeroben = layercalculations(hChannel-toppoints, growthaferinflation, lastlayer)
     return meshdata, toppoints, [math.ceil(nbisoben), lastlayeroben]
+
+if __name__ == "__main__":
+    yplus = [1,30,40,100,1000,3000]
+    for i in yplus:
+        x = ypluscalc(i, 1.79e-5, 1.225, 0.5)
+        print(f"yplus: {i}")
+        print(f"y_firstheight: {2*x}")
+        print(f"Number of inflation layers: {inflationlayernumber(2*x, 1.1, 0.1)}")
+
+    print(totalheightcalculation(0.001753, 1.1, 43))

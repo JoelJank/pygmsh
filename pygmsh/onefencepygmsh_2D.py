@@ -3,12 +3,13 @@ import gmsh
 import math
 import numpy as np
 from utils.meshcalc import inflationcalculation,inflationlayernumber, totalheightcalculation
-from utils.json import json_read as json_read2D
+from utils.jsonutil import json_read as json_read2D
 
 settings_path = "../config/settings.json"
 
 settings = json_read2D(settings_path)
 
+fenceNumber = settings["number_of_fences"]
 fenceHeight = settings["height_of_fences"]
 fencexPos = settings["xpos_firstfence"]
 fenceNumSlits = settings["number_of_slits"]
@@ -56,6 +57,7 @@ plane_surfaces = np.empty((4), dtype = object)
 
 nFreeMesh = math.ceil((fencexPos-Xinflationheight)/meshFreesize)+1
 
+print(toppointsY)
 geo = pygmsh.geo.Geometry()
 m = geo.__enter__()
 
@@ -63,17 +65,27 @@ plane_corner[0][0] = m.add_point((0.0, 0.0, 0.0))
 plane_corner[0][1] = m.add_point((0.0, toppointsY, 0.0))
 plane_corner[0][2] = m.add_point((0.0, channelHeight, 0.0))
 
-plane_corner[1][0] = m.add_point((fencexPos-Xinflationheight, 0.0, 0.0))
-plane_corner[1][1] = m.add_point((fencexPos-Xinflationheight, toppointsY, 0.0))
-plane_corner[1][2] = m.add_point((fencexPos-Xinflationheight, channelHeight, 0.0))  
+if fenceNumber == 0:
+    plane_corner[1][0] = m.add_point((fencexPos-meshFreesize, 0.0, 0.0))
+    plane_corner[1][1] = m.add_point((fencexPos-meshFreesize, toppointsY, 0.0))
+    plane_corner[1][2] = m.add_point((fencexPos-meshFreesize, channelHeight, 0.0))
+else:
+    plane_corner[1][0] = m.add_point((fencexPos-Xinflationheight, 0.0, 0.0))
+    plane_corner[1][1] = m.add_point((fencexPos-Xinflationheight, toppointsY, 0.0))
+    plane_corner[1][2] = m.add_point((fencexPos-Xinflationheight, channelHeight, 0.0))  
 
 plane_corner[2][0] = m.add_point((fencexPos, 0.0, 0.0))
 plane_corner[2][1] = m.add_point((fencexPos, toppointsY, 0.0))
 plane_corner[2][2] = m.add_point((fencexPos, channelHeight, 0.0))
 
-plane_corner[3][0] = m.add_point((fencexPos+Xinflationheight, 0.0, 0.0))
-plane_corner[3][1] = m.add_point((fencexPos+Xinflationheight, toppointsY, 0.0))
-plane_corner[3][2] = m.add_point((fencexPos+Xinflationheight, channelHeight, 0.0))
+if fenceNumber == 0:
+    plane_corner[3][0] = m.add_point((fencexPos+meshFreesize, 0.0, 0.0))
+    plane_corner[3][1] = m.add_point((fencexPos+meshFreesize, toppointsY, 0.0))
+    plane_corner[3][2] = m.add_point((fencexPos+meshFreesize, channelHeight, 0.0))
+else:
+    plane_corner[3][0] = m.add_point((fencexPos+Xinflationheight, 0.0, 0.0))
+    plane_corner[3][1] = m.add_point((fencexPos+Xinflationheight, toppointsY, 0.0))
+    plane_corner[3][2] = m.add_point((fencexPos+Xinflationheight, channelHeight, 0.0))
 
 
 plane_corner[4][0] = m.add_point((widthChannel, 0.0, 0.0))
@@ -82,9 +94,13 @@ plane_corner[4][2] = m.add_point((widthChannel, channelHeight, 0.0))
 
 for i in range(fenceNumSlits):
     fences_slitpos[0][i] = m.add_point((0.0, yposSlits[i], 0.0))
-    fences_slitpos[1][i] = m.add_point((fencexPos-Xinflationheight, yposSlits[i], 0.0))
+    if fenceNumber == 0:
+        fences_slitpos[1][i] = m.add_point((fencexPos-meshFreesize, yposSlits[i], 0.0))
+        fences_slitpos[3][i] = m.add_point((fencexPos+meshFreesize, yposSlits[i], 0.0))
+    else:
+        fences_slitpos[1][i] = m.add_point((fencexPos-Xinflationheight, yposSlits[i], 0.0))
+        fences_slitpos[3][i] = m.add_point((fencexPos+Xinflationheight, yposSlits[i], 0.0))
     fences_slitpos[2][i] = m.add_point((fencexPos, yposSlits[i], 0.0))
-    fences_slitpos[3][i] = m.add_point((fencexPos+Xinflationheight, yposSlits[i], 0.0))
     fences_slitpos[4][i] = m.add_point((widthChannel, yposSlits[i], 0.0))
 
 
@@ -111,11 +127,19 @@ m.set_transfinite_curve(horizontal_lines[0][-1], nFreeMesh, "Progression", 1.0)
 m.set_transfinite_curve(horizontal_lines[1][0], nFreeMesh, "Progression", 1.0)
 m.set_transfinite_curve(horizontal_lines[1][-1], nFreeMesh, "Progression", 1.0)
 
-m.set_transfinite_curve(horizontal_lines[0][1], meshdataX[0][0], "Progression", 1/meshXDirectionGrowthRate)
-m.set_transfinite_curve(horizontal_lines[1][1], meshdataX[0][0], "Progression", meshXDirectionGrowthRate)
+if fenceNumber == 0:
+    m.set_transfinite_curve(horizontal_lines[0][1], 1, "Progression", 1.0)
+    m.set_transfinite_curve(horizontal_lines[1][1], 1, "Progression", 1.0)
 
-m.set_transfinite_curve(horizontal_lines[0][2], meshdataX[0][0], "Progression", meshXDirectionGrowthRate)
-m.set_transfinite_curve(horizontal_lines[1][2], meshdataX[0][0], "Progression", 1/meshXDirectionGrowthRate)
+    m.set_transfinite_curve(horizontal_lines[0][2], 1, "Progression", 1.0)
+    m.set_transfinite_curve(horizontal_lines[1][2], 1, "Progression", 1.0)
+else:
+
+    m.set_transfinite_curve(horizontal_lines[0][1], meshdataX[0][0], "Progression", 1/meshXDirectionGrowthRate)
+    m.set_transfinite_curve(horizontal_lines[1][1], meshdataX[0][0], "Progression", meshXDirectionGrowthRate)
+
+    m.set_transfinite_curve(horizontal_lines[0][2], meshdataX[0][0], "Progression", meshXDirectionGrowthRate)
+    m.set_transfinite_curve(horizontal_lines[1][2], meshdataX[0][0], "Progression", 1/meshXDirectionGrowthRate)
 
 print(len(vertical_lines[i])-1)
 for i in range(len(vertical_lines)):
@@ -126,6 +150,8 @@ for i in range(len(vertical_lines)):
 for i in range(len(plane_surfaces)):
     m.set_transfinite_surface(plane_surfaces[i],"Left", [plane_corner[i][0], plane_corner[i+1][0], plane_corner[i+1][2], plane_corner[i][2]])
 
+m.synchronize()
+
 m.set_recombined_surfaces([i for i in plane_surfaces])
 
 m.synchronize()
@@ -135,8 +161,8 @@ m.add_physical(list(vertical_lines[0]), "Inlet")
 m.add_physical(list(vertical_lines[-1]), "Outlet")
 m.add_physical(list(horizontal_lines[0]), "Bottom")
 m.add_physical(list(horizontal_lines[1]), "Top")
-
 m.add_physical(vertical_lines[2][-1], "FenceTop")
+m.add_physical(vertical_lines[2][-2], "FenceAfterInflation")
 
 even = []
 odd = []
@@ -150,7 +176,9 @@ if len(even) > 0:
 if len(odd) > 0:
     m.add_physical(odd, "slits2")
 
-geo.generate_mesh(dim=3)
+geo.generate_mesh(dim=2)
+gmsh.option.setNumber("Geometry.Tolerance", 1e-8)  
+gmsh.model.mesh.removeDuplicateNodes()
 gmsh.write(savespace)
 geo.__exit__()
 

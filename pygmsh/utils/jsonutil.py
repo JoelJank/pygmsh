@@ -16,6 +16,12 @@ def json_read(file_path):
         file = json.load(f)
     return file
 
+def json_write(jsonPath, safeJson):
+    with open (jsonPath, 'r') as fro:
+        with open(safeJson, 'w') as to:
+            json.dump(json.load(fro), to, indent = 4)
+
+            
 def save_json_to_savespace(jsonPath):
     """Saves the json file used to create the case in the same folder the mesh is saved
 

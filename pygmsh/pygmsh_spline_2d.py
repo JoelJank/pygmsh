@@ -3,7 +3,7 @@ import math
 import os
 import numpy as np
 from utils.meshcalc_spline import infcalc_spline
-from utils.json import json_read
+from utils.jsonutil import json_read
 from utils.splineread import read_height_file
 from utils.newton import point_on_curve
 from utils.search import search_spline

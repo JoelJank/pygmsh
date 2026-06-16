@@ -5,6 +5,9 @@ import numpy as np
 from utils.meshcalc import inflationcalculation,inflationlayernumber, totalheightcalculation
 from utils.jsonutil import json_write,json_read as json_read2D
 
+#this is directly taken from onefencepygmsh_2D.py
+
+
 settings_path = "../config/settings.json"
 
 settings = json_read2D(settings_path)
@@ -22,6 +25,9 @@ meshGrowthrate = settings["mesh_growthrate"]
 meshGrowthAfterInflation = settings["meshgrowtrate_afterinflation"]
 meshXDirectionFirstLayerHeight = settings["meshXDirectionFirstLayerHeight"]
 meshXDirectionGrowthRate = settings["meshXDirectionGrowthRate"]
+extrusion_height = settings["extrusion_height"]
+num_layers_z = settings["num_layers_extrusion"]
+
 savespace = settings["savespace"]
 
 savepath_json = savespace[:-4]+".json"
@@ -144,7 +150,7 @@ else:
     m.set_transfinite_curve(horizontal_lines[0][2], meshdataX[0][0], "Progression", meshXDirectionGrowthRate)
     m.set_transfinite_curve(horizontal_lines[1][2], meshdataX[0][0], "Progression", 1/meshXDirectionGrowthRate)
 
-print(len(vertical_lines[i])-1)
+
 for i in range(len(vertical_lines)):
     m.set_transfinite_curve(vertical_lines[i][-1], nbisobenY[0], "Progression", meshGrowthAfterInflation)
     for j in range(len(vertical_lines[0])-1):
@@ -157,33 +163,52 @@ m.synchronize()
 
 m.set_recombined_surfaces([i for i in plane_surfaces])
 
+
 m.synchronize()
 
-m.add_physical(plane_surfaces.tolist(), "Channel")
-m.add_physical(list(vertical_lines[0]), "Inlet")
-m.add_physical(list(vertical_lines[-1]), "Outlet")
-m.add_physical(list(horizontal_lines[0]), "Bottom")
-m.add_physical(list(horizontal_lines[1]), "Top")
-m.add_physical(vertical_lines[2][-1], "FenceTop")
-m.add_physical(vertical_lines[2][-2], "FenceAfterInflation")
+extruded_volumes = []
 
-even = []
-odd = []
-for j in range(len(vertical_lines[2])-2):
-    if j % 2 == 0:
-        even.append(vertical_lines[2][j])
-    else:
-        odd.append(vertical_lines[2][j])
-if len(even) > 0:
-    m.add_physical(even, "slits1")
-if len(odd) > 0:
-    m.add_physical(odd, "slits2")
+for surface in plane_surfaces:
+    extruded = m.extrude(surface, translation_axis = (0,0, extrusion_height), num_layers = num_layers_z, recombine = True)
+    extruded_volumes.append(extruded)
+m.synchronize()
 
-geo.generate_mesh(dim=2)
+
+volume_channel = []
+surface_front = []
+surface_top = []
+surface_bottom = []
+
+surface_inlet = extruded_volumes[0][2][5:8]
+surface_outlet = extruded_volumes[-1][2][1:4]
+surface_fence = [extruded_volumes[1][2][1]]
+surface_fencetop = extruded_volumes[1][2][2:4]
+
+for i in range(len(extruded_volumes)):
+    volume_channel.append(extruded_volumes[i][1])
+    surface_front.append(extruded_volumes[i][0])
+    surface_top.append(extruded_volumes[i][2][4])
+    surface_bottom.append(extruded_volumes[i][2][0])
+
+surface_back_flatten = plane_surfaces.flatten().tolist()
+m.add_physical(volume_channel, "channel")
+m.add_physical(surface_back_flatten, "back")
+m.add_physical(surface_front, "front")
+m.add_physical(surface_top, "top")
+m.add_physical(surface_bottom, "bottom")
+m.add_physical(surface_inlet, "inlet")
+m.add_physical(surface_outlet, "outlet")
+m.add_physical(surface_fence, "fence")
+m.add_physical(surface_fencetop, "fencetop")
+
+geo.generate_mesh(dim=3)
 gmsh.option.setNumber("Geometry.Tolerance", 1e-8)  
 gmsh.model.mesh.removeDuplicateNodes()
+m.synchronize()
+
 gmsh.write(savespace)
 geo.__exit__()
+
 
 
         

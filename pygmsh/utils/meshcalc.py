@@ -56,11 +56,15 @@ def inflationcalculation(h1, growthrate, nlayers, hFence, nparts, hChannel, grow
     return meshdata, toppoints, [math.ceil(nbisoben), lastlayeroben]
 
 if __name__ == "__main__":
-    yplus = [1,30,40,100,1000,3000]
+    yplus = [1]
+    growthrate = 1.1
+    freesize = 500
+    ustar = 0.5
+    density = 0.019
+    viscosity = 9.82e-6
     for i in yplus:
-        x = ypluscalc(i, 1.79e-5, 1.225, 0.5)
+        x = ypluscalc(i, viscosity, density, ustar)
         print(f"yplus: {i}")
         print(f"y_firstheight: {2*x}")
-        print(f"Number of inflation layers: {inflationlayernumber(2*x, 1.1, 0.1)}")
-
-    print(totalheightcalculation(0.001753, 1.1, 43))
+        print(f"Number of inflation layers: {inflationlayernumber(2*x, growthrate, freesize)}")
+        print(f"Total height of the inflation layer:{totalheightcalculation(2*x, growthrate, math.ceil(inflationlayernumber(2*x, growthrate, freesize)))}")
